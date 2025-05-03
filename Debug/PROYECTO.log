@@ -5,6 +5,6 @@ C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación gr
 C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\Window.h(13,37): warning C4244: 'return': conversión de 'GLint' a 'GLfloat'; posible pérdida de datos
   (compilando archivo de origen "ProyectoFeriaCG.cpp")
   
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(358,15): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(360,33): warning C4244: '+=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(386,15): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(388,33): warning C4244: '+=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
   PROYECTO.vcxproj -> C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\Debug\PROYECTO.exe

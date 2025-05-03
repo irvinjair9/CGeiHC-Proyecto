@@ -31,7 +31,13 @@
 #include "Skybox.h"
 
 //La musica
-#include "musica.h"
+#include "inc/fmod.hpp"
+#include <inc/fmod_errors.h>
+
+FMOD::System* fmodSystem;
+FMOD::Sound* music;
+FMOD::Channel* channel = nullptr;
+
 
 //para iluminación
 #include "CommonValues.h"
@@ -40,6 +46,10 @@
 #include "SpotLight.h"
 #include "Material.h"
 const float toRadians = 3.14159265f / 180.0f;
+
+
+
+
 
 
 float sunAngle = 0.0f;
@@ -210,6 +220,23 @@ void CreateShaders()
 	shaderList.push_back(*shader1);
 }
 
+//Función para la musica con Fmod
+void iniciarFMOD() {
+	FMOD::System_Create(&fmodSystem);
+	fmodSystem->init(512, FMOD_INIT_NORMAL, 0);
+	fmodSystem->createSound("sounds/Fondo_Feria.wav", FMOD_LOOP_NORMAL, 0, &music);
+	fmodSystem->playSound(music, 0, false, &channel);
+}
+
+void actualizarFMOD() {
+	fmodSystem->update();
+}
+
+void liberarFMOD() {
+	music->release();
+	fmodSystem->close();
+	fmodSystem->release();
+}
 
 //Creación de bancas para decorar
 void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
@@ -220,6 +247,7 @@ void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(base));
 	Banca.RenderModel();
 }
+
 //Creación de bancas comedor para decorar
 void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
 	glm::mat4 base = glm::mat4(1.0f);
@@ -248,7 +276,7 @@ int main()
 
 	CreateObjects();
 	CreateShaders();
-	reproducirMusica();
+	iniciarFMOD(); //iniciar la musica
 
 
 	camera = Camera(glm::vec3(-10.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 0.3f, 0.5f);
