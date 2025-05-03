@@ -53,7 +53,7 @@ const float toRadians = 3.14159265f / 180.0f;
 
 
 float sunAngle = 0.0f;
-float sunSpeed = 0.1f;
+float sunSpeed = 0.05f;
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -78,10 +78,30 @@ Model CasaDelArbol;
 Model Banca;
 Model BancaCom;
 Model LamparaBob;
+Model CasaBob;
+Model BobBrazoDer;
+Model BobBrazoIzq;
+Model BobCuerpo;
+Model BobPiernaDer;
+Model BobPiernaIzq;
+Model Cangre;
+Model CasaCalam;
+Model CasaPatricio;
+Model CrustaceoCas;
+Model FredN;
+Model HaroldN;
+Model Jaula;
+Model Pizzas;
+Model Topo;
+Model Bat;
+Model Martillo;
+Model Medusa1;
+Model Pelota;
 
 
 
 //Modelos Los padrinos magicos
+Model varita;
 
 
 Skybox skyboxDay;
@@ -258,7 +278,24 @@ void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::ve
 	BancaCom.RenderModel();
 }
 
+//Creación lamparas 
+void RenderLamparaBob(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
+	glm::mat4 base = glm::mat4(1.0f);
+	base = glm::translate(base, posicion);
+	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
+	base = glm::scale(base, escala);
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(base));
+	LamparaBob.RenderModel();
+}
 
+void RenderVarita(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1000.0f)) {
+	glm::mat4 base = glm::mat4(1.0f);
+	base = glm::translate(base, posicion);
+	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
+	base = glm::scale(base, escala);
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(base));
+	varita.RenderModel();
+}
 
 
 int main()
@@ -317,6 +354,63 @@ int main()
 	LamparaBob = Model();
 	LamparaBob.LoadModel("Models/LamparaBob.obj");
 
+	CasaBob = Model();
+	CasaBob.LoadModel("Models/CasaBob.obj");
+
+	BobBrazoDer = Model();
+	BobBrazoDer.LoadModel("Models/BobBrazoDer1.obj");
+
+	BobBrazoIzq = Model();
+	BobBrazoIzq.LoadModel("Models/BobBrazoIzq1.obj");
+
+	BobCuerpo = Model();
+	BobCuerpo.LoadModel("Models/BobCuerpo1.obj");
+
+	BobPiernaDer = Model();
+	BobPiernaDer.LoadModel("Models/BobPiernaDer1.obj");
+
+	BobPiernaIzq = Model();
+	BobPiernaIzq.LoadModel("Models/BobPiernaIzq1.obj");
+
+	Cangre = Model();
+	Cangre.LoadModel("Models/Cangre.obj");
+
+	CasaCalam = Model();
+	CasaCalam.LoadModel("Models/CasaCalam.obj");
+
+	CasaPatricio = Model();
+	CasaPatricio.LoadModel("Models/CasaPatricio.obj");
+
+	CrustaceoCas = Model();
+	CrustaceoCas.LoadModel("Models/CrustaceoCas.obj");
+
+	FredN = Model();
+	FredN.LoadModel("Models/FredN.obj");
+
+	HaroldN = Model();
+	HaroldN.LoadModel("Models/HaroldN.obj");
+
+	Jaula = Model();
+	Jaula.LoadModel("Models/Jaula.obj");
+
+	Pizzas = Model();
+	Pizzas.LoadModel("Models/Pizzas.obj");
+
+	Topo = Model();
+	Topo.LoadModel("Models/Topo.obj");
+
+	Bat = Model();
+	Bat.LoadModel("Models/Bat.obj");
+
+	Martillo = Model();
+	Martillo.LoadModel("Models/Martillo.obj");
+
+	Medusa1 = Model();
+	Medusa1.LoadModel("Models/Medusa1.obj");
+
+	Pelota = Model();
+	Pelota.LoadModel("Models/Pelota.obj");
+
 
 
 
@@ -326,6 +420,8 @@ int main()
 
 	//Modelos Los padrinos magicos
 
+	varita = Model();
+	varita.LoadModel("Models/varita.obj");
 
 
 
@@ -399,7 +495,7 @@ int main()
 		
 
 
-			// luz ligada a la cámara de tipo flash
+		// luz ligada a la cámara de tipo flash
 		//sirve para que en tiempo de ejecución (dentro del while) se cambien propiedades de la luz
 		glm::vec3 lowerLight = camera.getCameraPosition();
 		lowerLight.y -= 0.3f;
@@ -414,12 +510,20 @@ int main()
 		float radians = glm::radians(sunAngle); //Convertir a radianes
 		glm::vec3 direction = glm::vec3(0.0f, sin(radians), -cos(radians)); //Calcular dirección	
 
-		if (direction.y <= 0.0f) {
-			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection); //Dibujado ambiente
-		}
-		else {
+
+		//Cambio para que la transición sea más suave
+
+		if (direction.y > 0.2f) {
 			skyboxDay.DrawSkybox(camera.calculateViewMatrix(), projection);
 		}
+		else if (direction.y < -0.2f) {
+			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
+		}
+		else {
+			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
+		}
+
+
 
 		shaderList[0].UseShader();
 		uniformModel = shaderList[0].GetModelLocation();
@@ -437,19 +541,24 @@ int main()
 		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
 
-
+		//Nueva implemantación cambio de luz de día a noche con interpolación
 
 		mainLight.SetDirection(direction); //Actualizar dirección de la luz direccional
 
-		if (direction.y <= -0.05f) {
-			mainLight.SetAmbientIntensity(0.2f); //Bajar intensidad
-			mainLight.SetDiffuseIntensity(0.2f);
-		}
-		else if (direction.y >= 0.05f) {
-			mainLight.SetAmbientIntensity(0.5f); //Subir intensidad
-			mainLight.SetDiffuseIntensity(0.5f);
-		}
+		float intensidadMin = 0.2f;
+		float intensidadMax = 0.5f;
 
+		// Clamp la dirección Y para que siempre esté entre 0 y 1
+		float t = glm::clamp(direction.y, 0.0f, 1.0f);
+
+		// Interpolación de luz según la posición del sol
+		float ambient = glm::mix(intensidadMin, intensidadMax, t);
+		float diffuse = glm::mix(intensidadMin, intensidadMax, t);
+
+		mainLight.SetAmbientIntensity(ambient);
+		mainLight.SetDiffuseIntensity(diffuse);
+
+		//Esto ya estaba
 		shaderList[0].SetDirectionalLight(&mainLight); //Mainlight para el sol
 		shaderList[0].SetPointLights(pointLights, pointLightCount);
 		shaderList[0].SetSpotLights(spotLights, spotLightCount);
@@ -472,8 +581,8 @@ int main()
 		
 		//Isla Hora de aventura
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-400.0f, -0.5f, 400.0f));
-		model = glm::scale(model, glm::vec3(15.0f, 1.0f, 15.0f));
+		model = glm::translate(model, glm::vec3(-300.0f, -0.8f, 300.0f));
+		model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniformColor, 1, glm::value_ptr(color));
 		pisoH.UseTexture();
@@ -482,8 +591,8 @@ int main()
 
 		//Isla padrinos magicos		
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(400.0f, -0.5f, 400.0f));
-		model = glm::scale(model, glm::vec3(15.0f, 1.0f, 15.0f));
+		model = glm::translate(model, glm::vec3(300.0f, -0.8f, 300.0f));
+		model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		pisoL.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -492,8 +601,8 @@ int main()
 
 		//Isla Bob Esponja
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, -400.0f));
-		model = glm::scale(model, glm::vec3(15.0f, 1.0f, 15.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.8f, -300.0f));
+		model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		pisoB.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -501,7 +610,7 @@ int main()
 
 		//Kiosko 
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.8f, 0.0f));
 		model = glm::scale(model, glm::vec3(5.0f, 1.0f, 5.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		pisoETexture.UseTexture();
@@ -511,8 +620,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, -150.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 10.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.8f, -75.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 2.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -520,8 +629,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 230.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 18.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.8f, 170.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 12.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -529,8 +638,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 400.0f));
-		model = glm::scale(model, glm::vec3(25.0f, 1.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.8f, 300.0f));
+		model = glm::scale(model, glm::vec3(10.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -538,8 +647,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(400.0f, -0.5f, -80.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 33.0f));
+		model = glm::translate(model, glm::vec3(300.0f, -0.8f, -95.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 19.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -547,8 +656,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-400.0f, -0.5f, -80.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 33.0f));
+		model = glm::translate(model, glm::vec3(-300.0f, -0.8f, -95.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 19.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -556,8 +665,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(270.0f, -0.5f, -400.0f));
-		model = glm::scale(model, glm::vec3(12.0f, 1.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(255.0f, -0.8f, -300.0f));
+		model = glm::scale(model, glm::vec3(5.5f, 1.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -565,8 +674,8 @@ int main()
 
 		//Caminos de conexion
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-270.0f, -0.5f, -400.0f));
-		model = glm::scale(model, glm::vec3(12.0f, 1.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(-255.0f, -0.8f, -300.0f));
+		model = glm::scale(model, glm::vec3(5.5f, 1.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		camino.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -584,7 +693,7 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BMO.RenderModel();
 
-
+		//Casa del arbol
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-400.0f, -0.2f, 400.0));
 		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -610,7 +719,126 @@ int main()
 
 
 		//Colocar modelos Bob esponja
-		
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(0.0f, 8.8f, -250.0));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+		modelaux = model;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		BobCuerpo.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(1.9f, -1.0f, 0.0));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		BobBrazoDer.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-1.9f, -1.0f, 0.0));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		BobBrazoIzq.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.8f, -2.5f, 0.0));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		BobPiernaDer.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-0.8f, -2.5f, 0.0));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		BobPiernaIzq.RenderModel();
+
+		//CASAS
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(140.0f, 0.0f, -420.0));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.5f, 2.5f, 2.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CasaBob.RenderModel();
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-130.0f, 0.0f, -450.0));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.8f, 2.8f, 2.8f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CasaCalam.RenderModel();
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-130.0f, -3.0f, -140.0));
+		model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CasaPatricio.RenderModel();
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(160.0f, -4.0f, -160.0));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CrustaceoCas.RenderModel();
+
+		//TOPO
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-130.0f, 0.0f, -210.0));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
+		modelaux = model;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Topo.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(1.3f, 4.0f, 0.4));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Medusa1.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-0.1f, 4.0f, 0.4));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Medusa1.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-1.4f, 4.0f, 0.4));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Medusa1.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-1.0f, 3.4f, -1.1));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Medusa1.RenderModel();
+
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.8f, 3.4f, -1.1));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Medusa1.RenderModel();
+
+		//JAULA
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(0.0f, 10.0f, -420.0));
+		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Jaula.RenderModel();
+
+		//PIZZAS
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-170.0f, 13.0f, -340.0));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.32f, 0.32f, 0.32f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Pizzas.RenderModel();
+
+		//CANGREBURGUERS
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(50.0f, 9.4f, -120.0));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.3f, 1.3f, 1.3f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cangre.RenderModel();
+
+
+		//Bancas
 		RenderBanca(glm::vec3(-48.0f, -1.0f, 25.0f), -1.6f, uniformModel);
 		RenderBanca(glm::vec3(48.0f, -1.0f, 25.0f), 1.6f, uniformModel);
 		RenderBanca(glm::vec3(-48.0f, -1.0f, -25.0f), -1.6f, uniformModel);
@@ -618,7 +846,7 @@ int main()
 
 
 
-		//Mesa de comer 1
+		//Mesas de comer
 		RenderBancaCom(glm::vec3(30.0f, -1.0f, -40.0f), 0.0f, uniformModel);
 		RenderBancaCom(glm::vec3(-30.0f, -1.0f, -40.0f), 0.0f, uniformModel);
 		RenderBancaCom(glm::vec3(30.0f, -1.0f, 40.0f), 0.0f, uniformModel);
@@ -626,12 +854,13 @@ int main()
 
 
 
-
-
-
-
-
-
+		//Lamparas
+		//En kiosko
+		RenderLamparaBob(glm::vec3(-49.0f, -0.8f, -49.0f), -0.5f, uniformModel);
+		RenderLamparaBob(glm::vec3(49.0f, -0.8f, -49.0f), 3.5f, uniformModel);
+		RenderLamparaBob(glm::vec3(-49.0f, -0.8f, 49.0f), 0.5f, uniformModel);
+		RenderLamparaBob(glm::vec3(49.0f, -0.8f, 49.0f), 2.5f, uniformModel);
+		
 
 
 
@@ -649,24 +878,20 @@ int main()
 
 		//Colocar modelos Los padrinos magicos
 
+		//Varitas
+		RenderVarita(glm::vec3(320.0f, -0.8f, 0.0f), 0.0f, uniformModel);
+		RenderVarita(glm::vec3(300.0f, -0.8f, 499.0f), 1.5f, uniformModel);
 
 
+		RenderVarita(glm::vec3(-320.0f, -0.8f, 0.0f), 0.0f, uniformModel);
+		RenderVarita(glm::vec3(-300.0f, -0.8f, 499.0f), 1.5f, uniformModel);
+
+		RenderVarita(glm::vec3(0.0f, -0.8f, 320.0f), 1.5f, uniformModel);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		RenderVarita(glm::vec3(300.0f, -0.8f, -320.0f), 1.5f, uniformModel);
+		RenderVarita(glm::vec3(-300.0f, -0.8f, -320.0f), 1.5f, uniformModel);
+		RenderVarita(glm::vec3(0.0f, -0.8f, -499.0f), 1.5f, uniformModel);
 
 
 
