@@ -6,12 +6,6 @@
 #include <vector>
 #include <math.h>
 
-
-
-
-#include <stdio.h>
-
-
 #include <glew.h>
 #include <glfw3.h>
 
@@ -72,6 +66,14 @@ Texture camino; //Piso camino de conexión
 //Modelos hora de aventura
 Model BMO;
 Model CasaDelArbol;
+Model JakeCuerpo;
+Model JakeBrazoDer;
+Model JakeBrazoIzq;
+Model JakePiernaDer;
+Model JakePiernaIzq;
+Model Prismo;
+Model MarcelinesGuitar;
+
 
 
 
@@ -339,7 +341,20 @@ int main()
 	BMO.LoadModel("Models/BMO.obj");
 	CasaDelArbol = Model();
 	CasaDelArbol.LoadModel("Models/CasaDelArbol.obj");
-
+	JakeCuerpo = Model();
+	JakeCuerpo.LoadModel("Models/CuerpoJake.obj");
+	JakeBrazoDer = Model();
+	JakeBrazoDer.LoadModel("Models/BrazoDerechoJake.obj");
+	JakeBrazoIzq = Model();
+	JakeBrazoIzq.LoadModel("Models/BrazoIzquierdoJake.obj");
+	JakePiernaDer = Model();
+	JakePiernaDer.LoadModel("Models/PiernaDerechaJake.obj");
+	JakePiernaIzq = Model();
+	JakePiernaIzq.LoadModel("Models/PiernaIzquierdaJake.obj");
+	Prismo = Model();
+	Prismo.LoadModel("Models/Prismo.obj");
+	MarcelinesGuitar = Model();
+	MarcelinesGuitar.LoadModel("Models/MarcelinesGuitar.obj");
 
 
 
@@ -847,8 +862,51 @@ int main()
 		model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaDelArbol.RenderModel();
-
 		
+		//Jake el perro
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));  
+		model = glm::scale(model, glm::vec3(1.0f));                  
+		glm::mat4 modelJake = model;                                
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeCuerpo.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-0.9f, 2.0f, 0.0f)); 
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeBrazoDer.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(0.9f, 2.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeBrazoIzq.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaDer.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaIzq.RenderModel();
+
+		//Prismo
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-200.0f, 0.5f, 470.0));
+		model = glm::scale(model, glm::vec3(23.0f, 23.0f, 23.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Prismo.RenderModel();
+
+		//Guitarra de Marceline
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
+		//model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		MarcelinesGuitar.RenderModel();
+
+
 
 
 
