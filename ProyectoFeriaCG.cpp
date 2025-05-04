@@ -53,7 +53,8 @@ const float toRadians = 3.14159265f / 180.0f;
 
 
 float sunAngle = 0.0f;
-float sunSpeed = 0.05f;
+//float sunSpeed = 0.05f;
+float sunSpeed = 0.1f; //Velocidad de rotación del sol
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -469,9 +470,6 @@ int main()
 
 
 
-
-
-
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
 	GLuint uniformColor = 0;
@@ -494,34 +492,183 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 
+		if (mainWindow.getLantern() == 1)
+		{
+			//linterna
+			spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
+				0.0f, 2.0f,
+				0.0f, 0.0f, 0.0f,
+				0.0f, -1.0f, 0.0f,
+				1.0f, 0.0f, 0.0f,
+				5.0f);
+			spotLightCount++;//Encender lampara
+		}
+		else if (mainWindow.getLantern() == 0)
+		{
+			//linterna
+			spotLights[0] = SpotLight(0.0f, 0.0f, 0.0f,
+				0.0f, 2.0f,
+				0.0f, 0.0f, 0.0f,
+				0.0f, -1.0f, 0.0f,
+				1.0f, 0.0f, 0.0f,
+				5.0f);
+			spotLightCount--; //Apagar lampara
+		}
+
+
 
 		// luz ligada a la cámara de tipo flash
 		//sirve para que en tiempo de ejecución (dentro del while) se cambien propiedades de la luz
+		
+		
 		glm::vec3 lowerLight = camera.getCameraPosition();
 		lowerLight.y -= 0.3f;
 		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection()); //Luz se mueva respecto a la camara
 
 		//información al shader de fuentes de iluminación
 		
+
+
+
+
+
 		//Actualizar ángulo del sol
 		sunAngle += sunSpeed * deltaTime;
 		if (sunAngle > 360.0f)
 			sunAngle -= 360.0f;	
 		float radians = glm::radians(sunAngle); //Convertir a radianes
 		glm::vec3 direction = glm::vec3(0.0f, sin(radians), -cos(radians)); //Calcular dirección	
-
+		pointLightCount = 0; //Reiniciar contador de luces puntuales
 
 		//Cambio para que la transición sea más suave
+		//Función dinamica de actualización encendido de luces
+
 
 		if (direction.y > 0.2f) {
 			skyboxDay.DrawSkybox(camera.calculateViewMatrix(), projection);
 		}
-		else if (direction.y < -0.2f) {
+		else if (direction.y <= 0.2f) {
 			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
+		
+			//Camara
+			glm::vec3 camPos = camera.getCameraPosition();			
+			//Luces
+			// Luz poste
+			if (glm::distance(camPos, glm::vec3(-48.0f, 0.0f, -48.0f)) < 100.0f) {
+				spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
+					1.0f, 1.5f,
+					-48.0f, 8.0f, -48.0f,
+					0.5f, -1.0f, 0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount++;
+			}
+			else {
+				spotLights[1] = SpotLight(0.0f, 0.0f, 0.0f,
+					1.0f, 1.5f,
+					-48.0f, 8.0f, -48.0f,
+					0.5f, -1.0f, 0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount--;
+			}
+
+			//Luz poste
+			if (glm::distance(camPos, glm::vec3(48.0f, 0.0f, -48.0f)) < 100.0f) {
+				spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
+					1.0f, 1.5f,
+					48.0f, 8.0f, -48.0f,
+					-0.5f, -1.0f, 0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount++;
+			}
+			else {
+				spotLights[2] = SpotLight(0.0f, 0.0f, 0.0f,
+					1.0f, 1.5f,
+					48.0f, 8.0f, -48.0f,
+					-0.5f, -1.0f, 0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount--;
+			}
+
+			//Luz poste
+			if (glm::distance(camPos, glm::vec3(-48.0f, 0.0f, 48.0f)) < 100.0f) {
+				spotLights[3] = SpotLight(1.0f, 1.0f, 1.0f,
+					1.0f, 1.5f,
+					-48.0f, 8.0f, 48.0f,
+					0.5f, -1.0f, -0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount++;
+			}
+			else {
+				spotLights[3] = SpotLight(0.0f, 0.0f, 0.0f,
+					1.0f, 1.5f,
+					-48.0f, 8.0f, 48.0f,
+					0.5f, -1.0f, -0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount--;
+			}
+
+			//Luz poste
+			if (glm::distance(camPos, glm::vec3(48.0f, 0.0f, 48.0f)) < 100.0f) {
+				spotLights[4] = SpotLight(1.0f, 1.0f, 1.0f,
+					1.0f, 1.5f,
+					48.0f, 8.0f, 48.0f,
+					-0.5f, -1.0f, -0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount++;
+			}
+			else {
+				spotLights[4] = SpotLight(0.0f, 0.0f, 0.0f,
+					1.0f, 1.5f,
+					48.0f, 8.0f, 48.0f,
+					-0.5f, -1.0f, -0.5f,
+					1.0f, 0.0f, 0.0f,
+					50.0f);
+				spotLightCount--;
+			}
+
+			
+			//Luces de las varitas
+			struct VaritaLight {
+				glm::vec3 position;
+			};
+
+			std::vector<VaritaLight> varitas = {
+				{{320.0f, 55.f, 0.0f}},
+				{{300.0f, 55.f, 499.0f}},
+				{{-320.0f, 55.f, 0.0f}},
+				{{-300.0f, 55.f, 499.0f}},
+				{{0.0f,   55.f, 320.0f}},
+				{{300.0f, 55.f, -320.0f}},
+				{{-300.0f,55.f, -320.0f}},
+				{{0.0f,   55.f, -499.0f}}
+			};
+
+			for (int i = 0; i < varitas.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+				if (glm::distance(camPos, varitas[i].position) < 100.0f) {
+					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+						2.0f, 3.0f,
+						varitas[i].position.x, varitas[i].position.y, varitas[i].position.z,
+						0.3f, 0.05f, 0.01f);
+					pointLightCount++;
+				}
+			}
+
+
+
+
+
 		}
-		else {
-			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
-		}
+	
+
+
+
 
 
 
@@ -545,8 +692,8 @@ int main()
 
 		mainLight.SetDirection(direction); //Actualizar dirección de la luz direccional
 
-		float intensidadMin = 0.2f;
-		float intensidadMax = 0.5f;
+		float intensidadMin = 0.5f;
+		float intensidadMax = 1.0f;
 
 		// Clamp la dirección Y para que siempre esté entre 0 y 1
 		float t = glm::clamp(direction.y, 0.0f, 1.0f);
