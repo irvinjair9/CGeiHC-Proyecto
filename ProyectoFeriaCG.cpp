@@ -1125,9 +1125,12 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaDelArbol.RenderModel();
 
+		mainWindow.actualizarAnimacionJake();
+
 		//Jake el perro
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+		model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 0.5f, mainWindow.getPosZ()));
+		model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f));
 		glm::mat4 modelJake = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
@@ -1135,21 +1138,29 @@ int main()
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoDer.RenderModel();
 
 		model = modelJake;
-		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoIzq.RenderModel();
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+		model = glm::rotate(model, glm::radians(mainWindow.getPiernaDerAng()), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakePiernaDer.RenderModel();
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+		model = glm::rotate(model, glm::radians(mainWindow.getPiernaIzqAng()), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakePiernaIzq.RenderModel();
 
