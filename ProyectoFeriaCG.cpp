@@ -105,6 +105,10 @@ Model Pelota;
 
 //Modelos Los padrinos magicos
 Model varita;
+Model Cosmo;
+Model Wanda;
+Model Timmy;
+Model CasaTimmy;
 
 
 Skybox skyboxDay;
@@ -439,7 +443,17 @@ int main()
 	varita = Model();
 	varita.LoadModel("Models/varita.obj");
 
+	CasaTimmy = Model();
+	CasaTimmy.LoadModel("Models/casa-timmy.obj");
 
+	Cosmo = Model();
+	Cosmo.LoadModel("Models/cosmo.obj");
+
+	Wanda = Model();
+	Wanda.LoadModel("Models/wanda.obj");
+
+	Timmy = Model();
+	Timmy.LoadModel("Models/timmy.obj");
 
 
 
@@ -1097,6 +1111,33 @@ int main()
 		RenderVarita(glm::vec3(300.0f, -0.8f, -320.0f), 1.5f, uniformModel);
 		RenderVarita(glm::vec3(-300.0f, -0.8f, -320.0f), 1.5f, uniformModel);
 		RenderVarita(glm::vec3(0.0f, -0.8f, -499.0f), 1.5f, uniformModel);
+
+		//Casa Timmy
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(300.0f, 2.0f, 300.0));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CasaTimmy.RenderModel();
+
+		//Cosmo
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(300.0f, 10.2f, 240.0));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cosmo.RenderModel();
+		//Wanda
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(301.0f, 8.2f, 240.0));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Wanda.RenderModel();
+		//Timmy
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(301.0f, 0.2f, 240.0));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Timmy.RenderModel();
 
 
 
