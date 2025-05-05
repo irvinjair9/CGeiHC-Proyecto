@@ -20,6 +20,21 @@ public:
 	bool* getsKeys() { return keys; }
 	void swapBuffers() { return glfwSwapBuffers(mainWindow); }
 
+	// Variables para movimiento y animación de Jake
+	GLfloat getPosX() { return posX; }
+	GLfloat getPosZ() { return posZ; }
+	GLfloat getBrazoDerAng() { return brazoDerAng; }
+	GLfloat getBrazoIzqAng() { return brazoIzqAng; }
+	GLfloat getPiernaDerAng() { return piernaDerAng; }
+	GLfloat getPiernaIzqAng() { return piernaIzqAng; }
+	GLfloat getDireccion() { return direccion; }
+
+	GLfloat getLantern() { return Lantern; }
+	GLfloat getJuego() { return Juego; }
+
+	// Función para actualizar la animación de Jake
+	void actualizarAnimacionJake();
+
 	~Window();
 private:
 	GLFWwindow* mainWindow;
@@ -35,7 +50,26 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	GLfloat muevex;
+	GLfloat Lantern;//para linterna
+	GLfloat Juego;//para los juego
+
+	
+
+
 	bool mouseFirstMoved;
+
+// Variables para el movimiento y animación de Jake
+	GLfloat posX, posZ;          // Posición de Jake
+	GLfloat direccion;           // Dirección a la que mira Jake
+	GLfloat brazoDerAng;         // Ángulo del brazo derecho
+	GLfloat brazoIzqAng;         // Ángulo del brazo izquierdo
+	GLfloat piernaDerAng;        // Ángulo de la pierna derecha
+	GLfloat piernaIzqAng;        // Ángulo de la pierna izquierda
+	bool enMovimiento;           // Indica si Jake está en movimiento
+	GLfloat velocidadAnim;       // Velocidad de la animación
+	GLfloat rangoAnim;           // Rango de movimiento de las extremidades
+	bool direccionAnim;          // Dirección de la animación (oscilación)
+
 	static void ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode);
 	static void ManejaMouse(GLFWwindow* window, double xPos, double yPos);
 
