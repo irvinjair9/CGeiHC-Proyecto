@@ -21,6 +21,7 @@ public:
 	void swapBuffers() { return glfwSwapBuffers(mainWindow); }
 
 	GLfloat getLantern() { return Lantern; }
+	GLfloat getJuego() { return Juego; }
 
 
 	~Window();
@@ -38,7 +39,8 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	GLfloat muevex;
-	GLfloat Lantern;
+	GLfloat Lantern;//para linterna
+	GLfloat Juego;//para los juego
 	bool mouseFirstMoved;
 	static void ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode);
 	static void ManejaMouse(GLFWwindow* window, double xPos, double yPos);

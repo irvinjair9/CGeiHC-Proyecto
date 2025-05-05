@@ -15,6 +15,7 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	height = windowHeight;
 
 	Lantern = 0.0f;
+	Juego = 0.0f;
 
 	muevex = 2.0f;
 	for (size_t i = 0; i < 1024; i++)
@@ -125,6 +126,16 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_E && action == GLFW_PRESS)
 	{
 		theWindow->Lantern = 1;
+	}
+
+	//Para activar el juego
+	if (key == GLFW_KEY_O && action == GLFW_PRESS)
+	{
+		theWindow->Juego = 0;
+	}
+	if (key == GLFW_KEY_L && action == GLFW_PRESS)
+	{
+		theWindow->Juego = 1;
 	}
 
 
