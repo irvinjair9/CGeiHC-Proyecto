@@ -43,12 +43,13 @@ const float toRadians = 3.14159265f / 180.0f;
 
 
 
-
-
+//Constante para la animación
+float angulovaria = 0.0f;
 
 float sunAngle = 0.0f;
 //float sunSpeed = 0.05f;
 float sunSpeed = 0.1f; //Velocidad de rotación del sol
+
 
 // Variables para la animación de bateo
 float tiempoLanzamiento = 0.0f;          // Contador para el lanzamiento de pelotas
@@ -98,6 +99,22 @@ float tiempoActualMartillo = 0.0f;  // Contador de tiempo para los golpes
 // Crear un arreglo para controlar el estado de cada medusa 
 EstadoMedusa estadoMedusas[5];
 
+// Variables para la animación del lanzamiento del hacha
+float anguloHacha = 0.0f;          // Ángulo de rotación del hacha
+float velocidadHacha = 100.0f;     // Velocidad de rotación del hacha 
+float posHachaZ = 400.0f;          // Posición inicial del hacha en Z
+float lanzamientoVel = 25.0f;      // Velocidad del lanzamiento 
+bool hachaLanzada = false;         // Estado del hacha (lanzada o no)
+bool regresandoHacha = false;      // Estado de regreso del hacha
+float tiempoEspera = 0.0f;         // Tiempo de espera entre lanzamientos
+float tiempoEsperaMax = 3.0f;      // Tiempo máximo de espera 
+
+// Variables para la animación del brazo
+float anguloBrazo = 0.0f;          // Ángulo del brazo al lanzar
+float velocidadBrazo = 40.0f;      // Velocidad de movimiento del brazo
+bool preparandoLanzamiento = true; // Estado de preparación del lanzamiento
+float anguloMaxBrazo = -45.0f;     // Ángulo máximo del brazo hacia atrás
+float posicionHachaInicialZ = 400.0f; // Posición inicial del hacha
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -122,6 +139,8 @@ Model JakePiernaDer;
 Model JakePiernaIzq;
 Model Prismo;
 Model MarcelinesGuitar;
+Model CoinReceptor;
+
 
 
 
@@ -149,6 +168,7 @@ Model Bat;
 Model Martillo;
 Model Medusa1;
 Model Pelota;
+Model Coin;
 
 
 
@@ -353,6 +373,18 @@ void RenderVarita(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3
 	varita.RenderModel();
 }
 
+void RenderRecibidorMonedas(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
+	glm::mat4 base = glm::mat4(1.0f);
+	base = glm::translate(base, posicion);
+	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
+	base = glm::scale(base, escala);
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(base));
+	CoinReceptor.RenderModel();
+}
+
+
+
+
 //ANIMACION---------------------------------------------------------------
 
 
@@ -382,7 +414,7 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		distanciaPelota += velocidadPelota * deltaTime;
 
 		// Calcular la posición interpolada de la pelota desde la máquina hasta cerca de Jake
-		float t = distanciaPelota / 100.0f; 
+		float t = distanciaPelota / 100.0f;
 		if (t > 1.0f) t = 1.0f;
 
 		// La pelota se mueve hacia Jake 
@@ -525,7 +557,7 @@ void actualizarMedusas(float deltaTime) {
 	}
 
 	// Añadir aleatorización ocasional - medusa extra aleatoria cada cierto tiempo
-	if (rand() % 100 < 2) { 
+	if (rand() % 100 < 2) {
 		int medusaAleatoria = rand() % 5;
 		if (!estadoMedusas[medusaAleatoria].visible) {
 			estadoMedusas[medusaAleatoria].visible = true;
@@ -572,6 +604,64 @@ void actualizarAnimaciones(float deltaTime) {
 	actualizarMartillo(deltaTime);
 }
 
+// LANZAMIENTO DE HACHA-------------------------------------------------------------------
+// Función para actualizar la animación del hacha
+void ActualizarAnimacionHacha(float deltaTime) {
+	// Rotación constante del hacha
+	anguloHacha += velocidadHacha * deltaTime;
+	if (anguloHacha >= 360.0f) {
+		anguloHacha -= 360.0f;
+	}
+
+	// Ciclo de lanzamiento del hacha
+	if (!hachaLanzada && !regresandoHacha) {
+		// Fase de preparación del lanzamiento
+		if (preparandoLanzamiento) {
+			// Movimiento del brazo hacia atrás
+			anguloBrazo -= velocidadBrazo * deltaTime;
+			if (anguloBrazo <= anguloMaxBrazo) {
+				anguloBrazo = anguloMaxBrazo;
+				preparandoLanzamiento = false;
+			}
+		}
+		else {
+			// Movimiento del brazo hacia adelante (lanzamiento)
+			anguloBrazo += velocidadBrazo * deltaTime; 
+			if (anguloBrazo >= 30.0f) {
+				anguloBrazo = 30.0f;
+				hachaLanzada = true;
+			}
+		}
+	}
+	else if (hachaLanzada && !regresandoHacha) {
+		// Movimiento del hacha hacia la pared
+		posHachaZ += lanzamientoVel * deltaTime;
+
+		// Si el hacha llega a la pared
+		if (posHachaZ >= 470.0f) {
+			posHachaZ = 470.0f;
+			regresandoHacha = true;
+			tiempoEspera = 0.0f;
+		}
+	}
+	else {
+		// Esperar un momento en la pared
+		tiempoEspera += deltaTime;
+		if (tiempoEspera >= tiempoEsperaMax) {
+			// Regreso del hacha a la posición inicial
+			posHachaZ -= lanzamientoVel * 0.8f * deltaTime;  
+
+			// Si el hacha regresa a Jake
+			if (posHachaZ <= posicionHachaInicialZ) {
+				posHachaZ = posicionHachaInicialZ;
+				hachaLanzada = false;
+				regresandoHacha = false;
+				preparandoLanzamiento = true;
+				anguloBrazo = 0.0f;  // Reset del ángulo del brazo
+			}
+		}
+	}
+}
 
 
 int main()
@@ -612,22 +702,34 @@ int main()
 	//Modelos hora de aventura
 	BMO = Model();
 	BMO.LoadModel("Models/BMO.obj");
+
 	CasaDelArbol = Model();
 	CasaDelArbol.LoadModel("Models/CasaDelArbol.obj");
+
 	JakeCuerpo = Model();
 	JakeCuerpo.LoadModel("Models/CuerpoJake.obj");
+
 	JakeBrazoDer = Model();
 	JakeBrazoDer.LoadModel("Models/BrazoDerechoJake.obj");
+
 	JakeBrazoIzq = Model();
 	JakeBrazoIzq.LoadModel("Models/BrazoIzquierdoJake.obj");
+
 	JakePiernaDer = Model();
 	JakePiernaDer.LoadModel("Models/PiernaDerechaJake.obj");
+
 	JakePiernaIzq = Model();
 	JakePiernaIzq.LoadModel("Models/PiernaIzquierdaJake.obj");
+
 	Prismo = Model();
 	Prismo.LoadModel("Models/Prismo.obj");
+
 	MarcelinesGuitar = Model();
 	MarcelinesGuitar.LoadModel("Models/MarcelinesGuitar.obj");
+
+	CoinReceptor = Model();
+	CoinReceptor.LoadModel("Models/CoinReceptor.obj");
+
 
 
 
@@ -636,61 +738,97 @@ int main()
 	//Modelos Bob esponja
 	Banca = Model();
 	Banca.LoadModel("Models/Banca.obj");
+
 	BancaCom = Model();
 	BancaCom.LoadModel("Models/BancaCom.obj");
+
 	LamparaBob = Model();
 	LamparaBob.LoadModel("Models/LamparaBob.obj");
+
 	CasaBob = Model();
 	CasaBob.LoadModel("Models/CasaBob.obj");
+
 	BobBrazoDer = Model();
 	BobBrazoDer.LoadModel("Models/BobBrazoDer1.obj");
+
 	BobBrazoIzq = Model();
 	BobBrazoIzq.LoadModel("Models/BobBrazoIzq1.obj");
+
 	BobCuerpo = Model();
 	BobCuerpo.LoadModel("Models/BobCuerpo1.obj");
+
 	BobPiernaDer = Model();
 	BobPiernaDer.LoadModel("Models/BobPiernaDer1.obj");
+
 	BobPiernaIzq = Model();
 	BobPiernaIzq.LoadModel("Models/BobPiernaIzq1.obj");
+
 	Cangre = Model();
 	Cangre.LoadModel("Models/Cangre.obj");
+
 	CasaCalam = Model();
 	CasaCalam.LoadModel("Models/CasaCalam.obj");
+
 	CasaPatricio = Model();
 	CasaPatricio.LoadModel("Models/CasaPatricio.obj");
+
 	CrustaceoCas = Model();
 	CrustaceoCas.LoadModel("Models/CrustaceoCas.obj");
+
 	FredN = Model();
 	FredN.LoadModel("Models/FredN.obj");
+
 	HaroldN = Model();
 	HaroldN.LoadModel("Models/HaroldN.obj");
+
 	Jaula = Model();
 	Jaula.LoadModel("Models/Jaula.obj");
+
 	Pizzas = Model();
 	Pizzas.LoadModel("Models/Pizzas.obj");
+
 	Topo = Model();
 	Topo.LoadModel("Models/Topo.obj");
+
 	Bat = Model();
 	Bat.LoadModel("Models/Bat.obj");
+
 	Martillo = Model();
 	Martillo.LoadModel("Models/Martillo.obj");
+
 	Medusa1 = Model();
 	Medusa1.LoadModel("Models/Medusa1.obj");
+
 	Pelota = Model();
 	Pelota.LoadModel("Models/Pelota.obj");
 
+	Coin = Model();
+	Coin.LoadModel("Models/Coin.obj");
+
+
+
+
+
+
+
 
 	//Modelos Los padrinos magicos
+
 	varita = Model();
 	varita.LoadModel("Models/varita.obj");
+
 	CasaTimmy = Model();
 	CasaTimmy.LoadModel("Models/casa-timmy.obj");
+
 	Cosmo = Model();
 	Cosmo.LoadModel("Models/cosmo.obj");
+
 	Wanda = Model();
 	Wanda.LoadModel("Models/wanda.obj");
+
 	Timmy = Model();
 	Timmy.LoadModel("Models/timmy.obj");
+
 
 
 
@@ -763,11 +901,13 @@ int main()
 
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
+		ActualizarAnimacionHacha(deltaTime);
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glm::vec3 camPos = camera.getCameraPosition();
 
 		if (mainWindow.getLantern() == 1)
 		{
@@ -827,8 +967,6 @@ int main()
 		else if (direction.y <= 0.2f) {
 			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
 
-			//Camara
-			glm::vec3 camPos = camera.getCameraPosition();
 			//Luces
 			// Luz poste
 			if (glm::distance(camPos, glm::vec3(-48.0f, 0.0f, -48.0f)) < 100.0f) {
@@ -1110,21 +1248,65 @@ int main()
 
 
 		//Colocar modelos hora de aventura
+		//Para animación backflip BMO
+		static bool animacionIniciada = false;
+		static bool animacionTerminada = false;
+		static bool camaraEstabaLejos = true;
+		static float tiempoInicioAnimacion = 0.0f;
+
+		float tiempo = glfwGetTime();
+		float anguloBackflip = 0.0f;
+		float altura = 0.0f;
+
+
+		if (glm::distance(camPos, glm::vec3(-300.0f, 0.0f, 400.0f)) <= 30.0f && camaraEstabaLejos) {
+			animacionIniciada = false;
+			animacionTerminada = false;
+			camaraEstabaLejos = false; // Ya no está lejos
+		}
+
+		if (glm::distance(camPos, glm::vec3(-300.0f, 0.0f, 400.0f)) > 50.0f) {
+			camaraEstabaLejos = true;
+		}
+
+		if (!animacionTerminada && glm::distance(camPos, glm::vec3(-300.0f, 0.0f, 400.0f)) <= 50.0f) {
+			if (!animacionIniciada) {
+				animacionIniciada = true;
+				tiempoInicioAnimacion = tiempo;
+			}
+
+			float tiempoAnimacion = tiempo - tiempoInicioAnimacion;
+
+			if (tiempoAnimacion <= 2.0f) {
+				anguloBackflip = glm::radians(-360.0f * (tiempoAnimacion / 2.0f));
+				altura = sin(tiempoAnimacion * glm::pi<float>()) * 2.0f;
+			}
+			else {
+				animacionTerminada = true;
+				anguloBackflip = 0.0f;
+				altura = 0.0f;
+			}
+		}
+
+
 		//BMO
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-300.0f, -0.2f, 400.0));
-		model = glm::scale(model, glm::vec3(30.0f, 30.0f, 30.0f));
+		model = glm::translate(model, glm::vec3(-300.0f, altura, 400.0f));
+		model = glm::rotate(model, 2.5f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, anguloBackflip, glm::vec3(1.0f, 0.0f, 0.0f)); // Rotación para el backflip
+		model = glm::scale(model, glm::vec3(60.0f, 60.0f, 60.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BMO.RenderModel();
 
 		//Casa del arbol
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-400.0f, -0.2f, 400.0));
-		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 2.5f, 0.0f));
 		model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaDelArbol.RenderModel();
 
+		//PARA LA ANIMACIÓN DE JAKE
 		mainWindow.actualizarAnimacionJake();
 
 		//Jake el perro
@@ -1138,14 +1320,14 @@ int main()
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
-		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoDer.RenderModel();
 
 		model = modelJake;
-		model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1164,20 +1346,103 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakePiernaIzq.RenderModel();
 
+		////Guitarra de Marceline
+		//model = glm::mat4(1.0);
+		//model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
+		////model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		//model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
+		//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//MarcelinesGuitar.RenderModel();
+
 		//Prismo
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-200.0f, 0.5f, 470.0));
+		model = glm::translate(model, glm::vec3(-200.0f, -1.4f, 470.0));
 		model = glm::scale(model, glm::vec3(23.0f, 23.0f, 23.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
-		//Guitarra de Marceline
+
+		//Jake el perro 
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
-		//model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
+		model = glm::translate(model, glm::vec3(-190.0f, 3.7f, 400.0f));
+		model = glm::scale(model, glm::vec3(3.0f));
+		modelJake = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		MarcelinesGuitar.RenderModel();
+		JakeCuerpo.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		// Rotación para la animación del lanzamiento
+		model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeBrazoDer.RenderModel();
+
+		// Si el hacha no está lanzada, se dibuja junto con el brazo
+		// Si está lanzada, se dibuja en la posición de vuelo
+		if (!hachaLanzada) {
+			// Guitarra de Marceline como hacha (unida al brazo)
+			model = glm::translate(model, glm::vec3(-1.7f, 0.0f, 0.0));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(50.5f, 50.5f, 50.5f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			MarcelinesGuitar.RenderModel();
+		}
+		else {
+			// Guitarra en vuelo
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-190.0f, 3.7f + 2.0f, posHachaZ));
+			model = glm::rotate(model, glm::radians(anguloHacha), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(3.0f * 50.5f, 3.0f * 50.5f, 3.0f * 50.5f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			MarcelinesGuitar.RenderModel();
+		}
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeBrazoIzq.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaDer.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaIzq.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakeBrazoIzq.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaDer.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaIzq.RenderModel();
+
+		//AQUÍ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
+		//Recibidor de monedas
+		RenderRecibidorMonedas(glm::vec3(-220.0f, -0.9f, 419.0f), 0.0f, uniformModel);
+
+
+
+
+
+
 
 
 
@@ -1309,7 +1574,7 @@ int main()
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
-		model = glm::rotate(model,-1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
 		// Aquí aplicamos la rotación del martillo
 		model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1399,9 +1664,9 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 10.0f, -420.0));
 		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
 		modelaux = model;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Jaula.RenderModel();
-		
+
 		if (pelotaEnMovimiento) {
 			model = glm::mat4(1.0);
 			model = glm::translate(model, glm::vec3(-23.0f + posicionPelota.x, 10.0f + posicionPelota.y, -421.5f + posicionPelota.z));
@@ -1424,15 +1689,15 @@ int main()
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(3.0f));
 		modelJake = model;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeCuerpo.RenderModel();
-		
+
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoDer.RenderModel();
-		
+
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 		// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
@@ -1445,15 +1710,15 @@ int main()
 		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Bat.RenderModel();
-		
-		model = modelJake; 
-		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f)); 
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
-		JakePiernaDer.RenderModel(); 
-		
-		model = modelJake; 
-		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f)); 
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JakePiernaDer.RenderModel();
+
+		model = modelJake;
+		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakePiernaIzq.RenderModel();
 
 		//PIZZAS
@@ -1498,6 +1763,46 @@ int main()
 
 
 
+		//Coins
+		static bool monedaAnimando = false;
+		static float alturaMoneda = 3.0f;
+		static float rotacionCoin = 0.0f;
+
+		if (glm::distance(camPos, glm::vec3(-220.0f, 3.0f, 419.0f)) < 10.0f && mainWindow.getJuego() == 1) {
+
+			if (!monedaAnimando && alturaMoneda == 3.0f) {
+				monedaAnimando = true;
+			}
+
+			// Si se está animando, baja y gira
+			if (monedaAnimando) {
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
+
+				if (alturaMoneda <= 0.0f) {
+					alturaMoneda = 3.0f;
+					rotacionCoin = 0.0f;
+					monedaAnimando = false;
+				}
+			}
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-220.0f, alturaMoneda, 419.0f));
+			model = glm::rotate(model, 1.5f, glm::vec3(0.0f, 1, 0.0f));
+			model = glm::rotate(model, rotacionCoin, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Coin.RenderModel();
+
+		}
+
+
+
+
+
+
+
+
 
 
 		//Colocar modelos Los padrinos magicos
@@ -1531,18 +1836,23 @@ int main()
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cosmo.RenderModel();
+
 		//Wanda
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(301.0f, 8.2f, 240.0));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Wanda.RenderModel();
+
 		//Timmy
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(301.0f, 0.2f, 240.0));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Timmy.RenderModel();
+
+
+
 
 
 
