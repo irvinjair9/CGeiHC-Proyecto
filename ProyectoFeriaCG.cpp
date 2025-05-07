@@ -124,6 +124,8 @@ Model JakePiernaIzq;
 Model Prismo;
 Model MarcelinesGuitar;
 Model CoinReceptor;
+Model JuegoDardos;
+Model Dardo;
 
 
 
@@ -657,6 +659,12 @@ int main()
 
 	CoinReceptor = Model();
 	CoinReceptor.LoadModel("Models/CoinReceptor.obj");
+
+	JuegoDardos = Model();
+	JuegoDardos.LoadModel("Models/JuegoDardos.obj");
+
+	Dardo = Model();
+	Dardo.LoadModel("Models/Dardo.obj");
 
 
 
@@ -1277,10 +1285,9 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
-		//Guitarra de Marceline
+		//Guitarra de Marceline //CON ESTE SE DEBE DE HACER LA ANIMACIÓN
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
-		//model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		MarcelinesGuitar.RenderModel();
@@ -1288,12 +1295,24 @@ int main()
 
 		//AQUÍ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
 		//Recibidor de monedas
-		RenderRecibidorMonedas(glm::vec3(-220.0f, -0.9f, 419.0f), 0.0f, uniformModel);
-
-
+		RenderRecibidorMonedas(glm::vec3(-220.0f, -0.9f, 419.0f), 0.0f, uniformModel); //Tirar hacha 
+		RenderRecibidorMonedas(glm::vec3(-390.0f, -0.9f, 180.0f), 0.5f, uniformModel); //Juego de dardos
+		RenderRecibidorMonedas(glm::vec3(15.0f, -0.9f, -395.0f), 1.0f, uniformModel); //Bateo
+		RenderRecibidorMonedas(glm::vec3(-125.0f, -0.9f, -200.0f), 2.0f, uniformModel); //Golpear al topo
 		
 	
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-400.0f, -0.9f, 150.0));
+		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		JuegoDardos.RenderModel();
 
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-400.0f, 10.0f, 155.0));
+		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Dardo.RenderModel();
 
 
 
@@ -1371,145 +1390,10 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Topo.RenderModel();
 
-		glm::vec3 posicionesMedusas[5] = {
-			glm::vec3(1.3f, 0.0f, 0.4f),    // Medusa 1
-			glm::vec3(-0.1f, 0.0f, 0.4f),   // Medusa 2
-			glm::vec3(-1.4f, 0.0f, 0.4f),   // Medusa 3
-			glm::vec3(-1.0f, 0.0f, -1.1f),  // Medusa 4
-			glm::vec3(0.8f, 0.0f, -1.1f)    // Medusa 5
-		};
+		
 
-		// Renderiza cada medusa con su animación correspondiente
-		for (int i = 0; i < 5; i++) {
-			if (estadoMedusas[i].visible) {
-				model = modelaux;
-				// Aplica la altura animada a la posición Y
-				model = glm::translate(model, glm::vec3(
-					posicionesMedusas[i].x,
-					estadoMedusas[i].altura,  // Altura animada
-					posicionesMedusas[i].z
-				));
+		
 
-				// Si fue golpeada, aplastar la medusa (escalar en Y)
-				if (estadoMedusas[i].golpeada) {
-					float factorAplastamiento = 1.0f - (estadoMedusas[i].tiempoGolpeada * 1.5f);
-					if (factorAplastamiento < 0.2f) factorAplastamiento = 0.2f;
-
-					model = glm::scale(model, glm::vec3(0.4f, 0.4f * factorAplastamiento, 0.4f));
-
-					// Si está golpeada, también le damos un efecto de ensanchamiento lateral
-					model = glm::scale(model, glm::vec3(1.0f + (1.0f - factorAplastamiento), 1.0f, 1.0f + (1.0f - factorAplastamiento)));
-				}
-				else {
-					model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
-				}
-
-				// Agrega un pequeño balanceo para más realismo cuando está visible
-				if (!estadoMedusas[i].golpeada && estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
-					float balanceo = sin(glfwGetTime() * 2.0f + i * 1.5f) * 0.1f;
-					model = glm::rotate(model, balanceo, glm::vec3(0.0f, 0.0f, 1.0f));
-				}
-
-				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-				Medusa1.RenderModel();
-			}
-		}
-
-		//Jake el perro 
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-120.0f, 3.7f, -210.0f));
-		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(3.0f));
-		modelJake = model;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeCuerpo.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
-		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
-		// Aquí aplicamos la rotación del martillo
-		model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoDer.RenderModel();
-
-		model = glm::translate(model, glm::vec3(-2.0f, -0.1f, 0.0));
-		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Martillo.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
-		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoIzq.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaDer.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaIzq.RenderModel();
-
-		// Sistema de colisiones básico para detectar si golpeamos una medusa
-		if (martilloEnMovimiento && !martilloSubiendo) {
-			// Calculamos la posición del martillo basada en el ángulo actual
-			float anguloRad = glm::radians(anguloMartillo);
-
-			// Posición aproximada del martillo en el mundo (calculada con la rotación)
-			glm::vec3 posMartillo = glm::vec3(
-				-120.0f - 3.0f + sin(anguloRad) * 2.0f,  // Ajuste en X según rotación
-				3.7f + 2.0f - cos(anguloRad) * 2.0f,     // Ajuste en Y según rotación
-				-210.0f
-			);
-
-			// Radio de colisión del martillo
-			float radioMartillo = 4.0f;
-
-			// Verificar colisión con cada medusa visible
-			for (int i = 0; i < 5; i++) {
-				if (estadoMedusas[i].visible && !estadoMedusas[i].golpeada &&
-					estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
-
-					// Posición de la medusa en el mundo
-					glm::vec3 posMedusa = glm::vec3(
-						-130.0f + posicionesMedusas[i].x * 2.3f,
-						estadoMedusas[i].altura * 2.3f,
-						-210.0f + posicionesMedusas[i].z * 2.3f
-					);
-
-					// Distancia entre el martillo y la medusa
-					float distancia = glm::distance(posMartillo, posMedusa);
-
-					// Si hay colisión, marcar la medusa como golpeada
-					if (distancia < radioMartillo) {
-						estadoMedusas[i].golpeada = true;
-						estadoMedusas[i].tiempoGolpeada = 0.0f;
-						// Aquí podrías agregar efectos de sonido o incrementar la puntuación
-					}
-				}
-
-				// Procesar medusas golpeadas (animación de "aplastamiento")
-				if (estadoMedusas[i].golpeada) {
-					estadoMedusas[i].tiempoGolpeada += deltaTime;
-
-					// Después de un tiempo, hacer que desaparezca
-					if (estadoMedusas[i].tiempoGolpeada > 0.3f) {
-						estadoMedusas[i].altura -= estadoMedusas[i].velocidad * 0.5f * deltaTime;  // Desaparece más rápido
-
-						if (estadoMedusas[i].altura <= estadoMedusas[i].alturaInicial) {
-							estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
-							estadoMedusas[i].visible = false;
-							estadoMedusas[i].golpeada = false;
-						}
-					}
-				}
-			}
-		}
 
 		//JAULA 
 		model = glm::mat4(1.0);
@@ -1519,59 +1403,7 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Jaula.RenderModel();
 
-		if (pelotaEnMovimiento) {
-			model = glm::mat4(1.0);
-			model = glm::translate(model, glm::vec3(-23.0f + posicionPelota.x, 10.0f + posicionPelota.y, -421.5f + posicionPelota.z));
-			model = glm::scale(model, glm::vec3(3.3f, 3.3f, 3.3f));
-			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-			Pelota.RenderModel();
-		}
-		else {
-			// Si la pelota no está en movimiento, mostrarla en la máquina lanzadora
-			model = modelaux;
-			model = glm::translate(model, glm::vec3(-23.0f, -0.3f, -1.5));
-			model = glm::scale(model, glm::vec3(3.3f, 3.3f, 3.3f));
-			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-			Pelota.RenderModel();
-		}
-
-		//Jake el perro 
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(58.0f, 3.7f, -433.0f));
-		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(3.0f));
-		modelJake = model;
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeCuerpo.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
-		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoDer.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
-		// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
-		model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoIzq.RenderModel();
-
-		model = glm::translate(model, glm::vec3(1.5f, -0.2f, 0.0));
-		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Bat.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaDer.RenderModel();
-
-		model = modelJake;
-		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaIzq.RenderModel();
+		
 
 		//PIZZAS
 		model = glm::mat4(1.0);
@@ -1619,8 +1451,8 @@ int main()
 		static bool monedaAnimando = false;
 		static float alturaMoneda = 3.0f;
 		static float rotacionCoin = 0.0f;
-
-		if (glm::distance(camPos, glm::vec3(-220.0f, 3.0f, 419.0f)) < 10.0f && mainWindow.getJuego() == 1) {
+		//Para activar el hacha
+		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 50.0f && mainWindow.getJuego() == 1) {
 			
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1646,7 +1478,318 @@ int main()
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Coin.RenderModel();
 
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
 		}
+
+
+		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+
+			if (!monedaAnimando && alturaMoneda == 3.0f) {
+				monedaAnimando = true;
+			}
+
+			// Si se está animando, baja y gira
+			if (monedaAnimando) {
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
+
+				if (alturaMoneda <= 0.0f) {
+					alturaMoneda = 3.0f;
+					rotacionCoin = 0.0f;
+					monedaAnimando = false;
+				}
+			}
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-390.0f, alturaMoneda, 182.0f));
+			model = glm::rotate(model, 1.5f, glm::vec3(0.0f, 1, 0.0f));
+			model = glm::rotate(model, rotacionCoin, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Coin.RenderModel();
+
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+		}
+
+
+
+		//Para activar el bateo
+		if (glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+
+			if (!monedaAnimando && alturaMoneda == 3.0f) {
+				monedaAnimando = true;
+			}
+
+			// Si se está animando, baja y gira
+			if (monedaAnimando) {
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
+
+				if (alturaMoneda <= 0.0f) {
+					alturaMoneda = 3.0f;
+					rotacionCoin = 0.0f;
+					monedaAnimando = false;
+				}
+			}
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(15.0f, alturaMoneda, -395.0f));
+			model = glm::rotate(model, 1.5f, glm::vec3(0.0f, 1, 0.0f));
+			model = glm::rotate(model, rotacionCoin, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Coin.RenderModel();
+
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL BATEO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+
+			
+
+
+			if (pelotaEnMovimiento) {
+				model = glm::mat4(1.0);
+				model = glm::translate(model, glm::vec3(-23.0f + posicionPelota.x, 10.0f + posicionPelota.y, -421.5f + posicionPelota.z));
+				model = glm::scale(model, glm::vec3(3.3f, 3.3f, 3.3f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Pelota.RenderModel();
+			}
+			else {
+				// Si la pelota no está en movimiento, mostrarla en la máquina lanzadora
+				model = modelaux;
+				model = glm::translate(model, glm::vec3(-23.0f, -0.3f, -1.5));
+				model = glm::scale(model, glm::vec3(3.3f, 3.3f, 3.3f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Pelota.RenderModel();
+			}
+
+			//Jake el perro 
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(58.0f, 3.7f, -433.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
+			// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
+			model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = glm::translate(model, glm::vec3(1.5f, -0.2f, 0.0));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Bat.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+		}
+
+		//Para activar golpear al topo
+		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+
+			if (!monedaAnimando && alturaMoneda == 3.0f) {
+				monedaAnimando = true;
+			}
+
+			// Si se está animando, baja y gira
+			if (monedaAnimando) {
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
+
+				if (alturaMoneda <= 0.0f) {
+					alturaMoneda = 3.0f;
+					rotacionCoin = 0.0f;
+					monedaAnimando = false;
+				}
+			}
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-125.0f, alturaMoneda, -200.0f));
+			model = glm::rotate(model, 1.5f, glm::vec3(0.0f, 1, 0.0f));
+			model = glm::rotate(model, rotacionCoin, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Coin.RenderModel();
+
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL TOPO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+			//TOPO
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-130.0f, 0.0f, -210.0));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
+			modelaux = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Topo.RenderModel();
+
+			glm::vec3 posicionesMedusas[5] = {
+				glm::vec3(1.3f, 0.0f, 0.4f),    // Medusa 1
+				glm::vec3(-0.1f, 0.0f, 0.4f),   // Medusa 2
+				glm::vec3(-1.4f, 0.0f, 0.4f),   // Medusa 3
+				glm::vec3(-1.0f, 0.0f, -1.1f),  // Medusa 4
+				glm::vec3(0.8f, 0.0f, -1.1f)    // Medusa 5
+			};
+
+			// Renderiza cada medusa con su animación correspondiente
+			for (int i = 0; i < 5; i++) {
+				if (estadoMedusas[i].visible) {
+					model = modelaux;
+					// Aplica la altura animada a la posición Y
+					model = glm::translate(model, glm::vec3(
+						posicionesMedusas[i].x,
+						estadoMedusas[i].altura,  // Altura animada
+						posicionesMedusas[i].z
+					));
+
+					// Si fue golpeada, aplastar la medusa (escalar en Y)
+					if (estadoMedusas[i].golpeada) {
+						float factorAplastamiento = 1.0f - (estadoMedusas[i].tiempoGolpeada * 1.5f);
+						if (factorAplastamiento < 0.2f) factorAplastamiento = 0.2f;
+
+						model = glm::scale(model, glm::vec3(0.4f, 0.4f * factorAplastamiento, 0.4f));
+
+						// Si está golpeada, también le damos un efecto de ensanchamiento lateral
+						model = glm::scale(model, glm::vec3(1.0f + (1.0f - factorAplastamiento), 1.0f, 1.0f + (1.0f - factorAplastamiento)));
+					}
+					else {
+						model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+					}
+
+					// Agrega un pequeño balanceo para más realismo cuando está visible
+					if (!estadoMedusas[i].golpeada && estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
+						float balanceo = sin(glfwGetTime() * 2.0f + i * 1.5f) * 0.1f;
+						model = glm::rotate(model, balanceo, glm::vec3(0.0f, 0.0f, 1.0f));
+					}
+
+					glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+					Medusa1.RenderModel();
+				}
+			}
+
+			//Jake el perro 
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-120.0f, 3.7f, -210.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
+			// Aquí aplicamos la rotación del martillo
+			model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			model = glm::translate(model, glm::vec3(-2.0f, -0.1f, 0.0));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Martillo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+			// Sistema de colisiones básico para detectar si golpeamos una medusa
+			if (martilloEnMovimiento && !martilloSubiendo) {
+				// Calculamos la posición del martillo basada en el ángulo actual
+				float anguloRad = glm::radians(anguloMartillo);
+
+				// Posición aproximada del martillo en el mundo (calculada con la rotación)
+				glm::vec3 posMartillo = glm::vec3(
+					-120.0f - 3.0f + sin(anguloRad) * 2.0f,  // Ajuste en X según rotación
+					3.7f + 2.0f - cos(anguloRad) * 2.0f,     // Ajuste en Y según rotación
+					-210.0f
+				);
+
+				// Radio de colisión del martillo
+				float radioMartillo = 4.0f;
+
+				// Verificar colisión con cada medusa visible
+				for (int i = 0; i < 5; i++) {
+					if (estadoMedusas[i].visible && !estadoMedusas[i].golpeada &&
+						estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
+
+						// Posición de la medusa en el mundo
+						glm::vec3 posMedusa = glm::vec3(
+							-130.0f + posicionesMedusas[i].x * 2.3f,
+							estadoMedusas[i].altura * 2.3f,
+							-210.0f + posicionesMedusas[i].z * 2.3f
+						);
+
+						// Distancia entre el martillo y la medusa
+						float distancia = glm::distance(posMartillo, posMedusa);
+
+						// Si hay colisión, marcar la medusa como golpeada
+						if (distancia < radioMartillo) {
+							estadoMedusas[i].golpeada = true;
+							estadoMedusas[i].tiempoGolpeada = 0.0f;
+							// Aquí podrías agregar efectos de sonido o incrementar la puntuación
+						}
+					}
+
+					// Procesar medusas golpeadas (animación de "aplastamiento")
+					if (estadoMedusas[i].golpeada) {
+						estadoMedusas[i].tiempoGolpeada += deltaTime;
+
+						// Después de un tiempo, hacer que desaparezca
+						if (estadoMedusas[i].tiempoGolpeada > 0.3f) {
+							estadoMedusas[i].altura -= estadoMedusas[i].velocidad * 0.5f * deltaTime;  // Desaparece más rápido
+
+							if (estadoMedusas[i].altura <= estadoMedusas[i].alturaInicial) {
+								estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
+								estadoMedusas[i].visible = false;
+								estadoMedusas[i].golpeada = false;
+							}
+						}
+					}
+				}
+			}
+
+
+
+		}
+
 		
 
 
