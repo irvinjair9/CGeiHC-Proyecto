@@ -1338,7 +1338,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::rotate(model, glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoIzq.RenderModel();
 
