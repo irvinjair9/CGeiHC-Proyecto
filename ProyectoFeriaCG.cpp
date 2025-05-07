@@ -85,7 +85,7 @@ float cicloAparicion = 50.0f;       // Tiempo total del ciclo completo
 float tiempoEntreApariciones = 4.0f; // Tiempo entre cada aparición de medusa
 float tiempoActualCiclo = 0.0f;    // Contador del ciclo actual
 
-// Variables para la animación de Jake (martillo)
+// Variables para la animación de Jake con martillo
 float anguloMartillo = 0.0f;
 bool martilloEnMovimiento = false;
 float velocidadMartillo = 5.0f;
@@ -101,20 +101,22 @@ EstadoMedusa estadoMedusas[5];
 
 // Variables para la animación del lanzamiento del hacha
 float anguloHacha = 0.0f;          // Ángulo de rotación del hacha
-float velocidadHacha = 100.0f;     // Velocidad de rotación del hacha 
+float velocidadHacha = 8.0f;       // Velocidad de rotación del hacha 
 float posHachaZ = 400.0f;          // Posición inicial del hacha en Z
-float lanzamientoVel = 25.0f;      // Velocidad del lanzamiento 
+float posHachaX = -190.0f;         // Posición X del hacha (para variar donde golpea)
+float posHachaY = 5.7f;            // Posición Y del hacha (3.7f + 2.0f inicial)
+float lanzamientoVel = 4.0f;       // Velocidad del lanzamiento 
 bool hachaLanzada = false;         // Estado del hacha (lanzada o no)
-bool regresandoHacha = false;      // Estado de regreso del hacha
-float tiempoEspera = 0.0f;         // Tiempo de espera entre lanzamientos
-float tiempoEsperaMax = 3.0f;      // Tiempo máximo de espera 
-
-// Variables para la animación del brazo
+bool hachaEnPared = false;         // Indica si el hacha está clavada en la pared
+float tiempoEnPared = 0.0f;        // Contador para el tiempo que el hacha está en la pared
+float tiempoEnParedMax = 50.0f;    // Tiempo que el hacha permanece en la pared
+// Variables para la animación del brazo con hacha
 float anguloBrazo = 0.0f;          // Ángulo del brazo al lanzar
-float velocidadBrazo = 40.0f;      // Velocidad de movimiento del brazo
+float velocidadBrazo = 5.0f;       // Velocidad de movimiento del brazo
 bool preparandoLanzamiento = true; // Estado de preparación del lanzamiento
-float anguloMaxBrazo = -45.0f;     // Ángulo máximo del brazo hacia atrás
+float anguloMaxBrazo = -90.0f;     // Ángulo máximo del brazo hacia atrás
 float posicionHachaInicialZ = 400.0f; // Posición inicial del hacha
+float anguloHachaFijo = 45.0f;     // Ángulo fijo cuando el hacha está clavada en la pared
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -399,7 +401,7 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		tiempoLanzamiento = 0.0f;
 		pelotaEnMovimiento = true;
 		distanciaPelota = 0.0f;
-		// Guardar la posición inicial de la pelota (según tu código)
+		// Guardar la posición inicial de la pelota
 		posicionInicial = glm::vec3(-23.0f, -0.3f, -1.5f);
 		posicionPelota = posicionInicial;
 
@@ -418,7 +420,7 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		if (t > 1.0f) t = 1.0f;
 
 		// La pelota se mueve hacia Jake 
-		float newX = posicionInicial.x + t * 100.0f; // Mover 50 unidades en X
+		float newX = posicionInicial.x + t * 100.0f; 
 		float newY = posicionInicial.y;
 
 		// Actualizar la posición de la pelota
@@ -455,12 +457,12 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 			regresandoBat = true;
 		}
 
-		// Si el bat golpea la pelota (detección simple de colisión)
+		// Si el bat golpea la pelota
 		if (anguloGolpe > 0.0f && anguloGolpe < 15.0f && pelotaEnMovimiento) {
 			// La distancia de la pelota está alrededor del punto donde ocurriría el contacto
 			float posX = posicionPelota.x - posicionInicial.x;
 			if (posX > 55.0f && posX < 65.0f) {  // Si la pelota está cerca de Jake
-				// Cambiar la dirección de la pelota (simular que fue golpeada)
+				// Cambiar la dirección de la pelota 
 				velocidadPelota *= 0.5f; // Acelerar la pelota
 				// Invertir dirección (la pelota vuelve en dirección opuesta)
 				distanciaPelota = 100.0f * 0.6f; // Reiniciar la distancia recorrida
@@ -487,7 +489,7 @@ void inicializarMedusas() {
 	// Configuración inicial para todas las medusas
 	for (int i = 0; i < 5; i++) {
 		estadoMedusas[i].visible = false;
-		estadoMedusas[i].alturaInicial = 3.3f;    // Altura cuando está oculta
+		estadoMedusas[i].alturaInicial = 3.4f;    // Altura cuando está oculta
 		estadoMedusas[i].alturaMaxima = 10.0f;     // Altura cuando está visible
 		estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
 		estadoMedusas[i].velocidad = 0.1f + (rand() % 10) / 300.0f;  // Velocidad aleatoria
@@ -562,8 +564,8 @@ void actualizarMedusas(float deltaTime) {
 		if (!estadoMedusas[medusaAleatoria].visible) {
 			estadoMedusas[medusaAleatoria].visible = true;
 			estadoMedusas[medusaAleatoria].tiempoActual = 0.0f;
-			estadoMedusas[medusaAleatoria].velocidad = 0.15f + (rand() % 10) / 100.0f; // Más rápida
-			estadoMedusas[medusaAleatoria].tiempoVisible = 5.0f + (rand() % 10) / 20.0f; // Menos tiempo visible
+			estadoMedusas[medusaAleatoria].velocidad = 0.15f + (rand() % 10) / 100.0f; 
+			estadoMedusas[medusaAleatoria].tiempoVisible = 5.0f + (rand() % 10) / 20.0f;
 		}
 	}
 }
@@ -580,7 +582,7 @@ void actualizarMartillo(float deltaTime) {
 		tiempoActualMartillo = 0.0f;
 	}
 
-	// Animar el martillo si está en movimiento
+	// Si el martillo está en movimiento
 	if (martilloEnMovimiento) {
 		if (martilloSubiendo) {
 			anguloMartillo += velocidadMartillo * deltaTime;
@@ -605,16 +607,22 @@ void actualizarAnimaciones(float deltaTime) {
 }
 
 // LANZAMIENTO DE HACHA-------------------------------------------------------------------
-// Función para actualizar la animación del hacha
-void ActualizarAnimacionHacha(float deltaTime) {
-	// Rotación constante del hacha
-	anguloHacha += velocidadHacha * deltaTime;
-	if (anguloHacha >= 360.0f) {
-		anguloHacha -= 360.0f;
-	}
+// Función para generar un número aleatorio en un rango
+float randomFloat(float min, float max) {
+	return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+}
 
-	// Ciclo de lanzamiento del hacha
-	if (!hachaLanzada && !regresandoHacha) {
+// Función para actualizar la animación del hacha
+void actualizarAnimacionHacha(float deltaTime) {
+	// Rotación constante del hacha mientras está en vuelo
+	if (hachaLanzada && !hachaEnPared) {
+		anguloHacha += velocidadHacha * deltaTime;
+		if (anguloHacha >= 360.0f) {
+			anguloHacha -= 360.0f;
+		}
+	}
+	// Si el hacha no está lanzada ni en la pared
+	if (!hachaLanzada && !hachaEnPared) {
 		// Fase de preparación del lanzamiento
 		if (preparandoLanzamiento) {
 			// Movimiento del brazo hacia atrás
@@ -625,44 +633,43 @@ void ActualizarAnimacionHacha(float deltaTime) {
 			}
 		}
 		else {
-			// Movimiento del brazo hacia adelante (lanzamiento)
-			anguloBrazo += velocidadBrazo * deltaTime; 
-			if (anguloBrazo >= 30.0f) {
-				anguloBrazo = 30.0f;
+			// Movimiento del brazo hacia adelante
+			anguloBrazo += velocidadBrazo * deltaTime;
+			if (anguloBrazo >= 80.0f) {
+				anguloBrazo = 80.0f;
 				hachaLanzada = true;
+				// Al iniciar el lanzamiento, decidimos el punto de destino aleatorio
+				posHachaX = randomFloat(-200.0f, -180.0f); // Variación en X
+				posHachaY = randomFloat(4.0f, 8.0f);       // Variación en Y
 			}
 		}
 	}
-	else if (hachaLanzada && !regresandoHacha) {
+	// Si el hacha está en vuelo
+	else if (hachaLanzada && !hachaEnPared) {
 		// Movimiento del hacha hacia la pared
 		posHachaZ += lanzamientoVel * deltaTime;
-
 		// Si el hacha llega a la pared
-		if (posHachaZ >= 470.0f) {
-			posHachaZ = 470.0f;
-			regresandoHacha = true;
-			tiempoEspera = 0.0f;
+		if (posHachaZ >= 468.0f) {
+			posHachaZ = 468.0f;
+			hachaEnPared = true;  // El hacha ahora está clavada en la pared
+			tiempoEnPared = 0.0f; // Iniciamos el contador de tiempo
 		}
 	}
-	else {
-		// Esperar un momento en la pared
-		tiempoEspera += deltaTime;
-		if (tiempoEspera >= tiempoEsperaMax) {
-			// Regreso del hacha a la posición inicial
-			posHachaZ -= lanzamientoVel * 0.8f * deltaTime;  
-
-			// Si el hacha regresa a Jake
-			if (posHachaZ <= posicionHachaInicialZ) {
-				posHachaZ = posicionHachaInicialZ;
-				hachaLanzada = false;
-				regresandoHacha = false;
-				preparandoLanzamiento = true;
-				anguloBrazo = 0.0f;  // Reset del ángulo del brazo
-			}
+	// Si el hacha está clavada en la pared
+	else if (hachaEnPared) {
+		// Contamos el tiempo que el hacha permanece en la pared
+		tiempoEnPared += deltaTime;
+		// Si se cumple el tiempo máximo en la pared
+		if (tiempoEnPared >= tiempoEnParedMax) {
+			// Reseteamos los estados para que el hacha reaparezca en la mano
+			hachaLanzada = false;
+			hachaEnPared = false;
+			preparandoLanzamiento = true;
+			anguloBrazo = 0.0f;  // Reset del ángulo del brazo
+			posHachaZ = posicionHachaInicialZ; // Reposicionar el hacha directamente
 		}
 	}
 }
-
 
 int main()
 {
@@ -901,7 +908,8 @@ int main()
 
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
-		ActualizarAnimacionHacha(deltaTime);
+		actualizarAnimacionHacha(deltaTime);
+
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1311,9 +1319,9 @@ int main()
 
 		//Jake el perro
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 0.5f, mainWindow.getPosZ()));
+		model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 3.2f, mainWindow.getPosZ()));
 		model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f));
+		model = glm::scale(model, glm::vec3(3.0f));
 		glm::mat4 modelJake = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeCuerpo.RenderModel();
@@ -1378,11 +1386,8 @@ int main()
 		model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoDer.RenderModel();
-
-		// Si el hacha no está lanzada, se dibuja junto con el brazo
-		// Si está lanzada, se dibuja en la posición de vuelo
-		if (!hachaLanzada) {
-			// Guitarra de Marceline como hacha (unida al brazo)
+		
+		if (!hachaLanzada && !hachaEnPared) {
 			model = glm::translate(model, glm::vec3(-1.7f, 0.0f, 0.0));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -1391,10 +1396,22 @@ int main()
 			MarcelinesGuitar.RenderModel();
 		}
 		else {
-			// Guitarra en vuelo
+			// Hacha en vuelo o clavada en la pared
 			model = glm::mat4(1.0);
-			model = glm::translate(model, glm::vec3(-190.0f, 3.7f + 2.0f, posHachaZ));
-			model = glm::rotate(model, glm::radians(anguloHacha), glm::vec3(0.0f, 0.0f, 1.0f));
+
+			// Si está en vuelo, la posición irá cambiando pero alineada con el lanzamiento
+			if (hachaLanzada && !hachaEnPared) {
+				// Durante el vuelo, mantenemos la dirección pero con la posición Z cambiante
+				model = glm::translate(model, glm::vec3(-190.0f, 3.7f + 2.0f, posHachaZ));
+				model = glm::rotate(model, glm::radians(anguloHacha), glm::vec3(0.0f, 0.0f, 1.0f));
+			}
+			// Si está clavada en la pared, usamos la posición X e Y aleatorias generadas
+			else if (hachaEnPared) {
+				model = glm::translate(model, glm::vec3(posHachaX, posHachaY, posHachaZ));
+				// Usamos el ángulo fijo predeterminado al inicio del lanzamiento
+				model = glm::rotate(model, glm::radians(anguloHachaFijo), glm::vec3(0.0f, 0.0f, 1.0f));
+			}
+
 			model = glm::scale(model, glm::vec3(3.0f * 50.5f, 3.0f * 50.5f, 3.0f * 50.5f));
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			MarcelinesGuitar.RenderModel();
@@ -1454,6 +1471,7 @@ int main()
 
 
 		//Colocar modelos Bob esponja
+		//BOB ESPONJA
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, 8.8f, -250.0));
 		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1538,7 +1556,7 @@ int main()
 					posicionesMedusas[i].z
 				));
 
-				// Si fue golpeada, aplastar la medusa (escalar en Y)
+				// Si fue golpeada, aplastar la medusa
 				if (estadoMedusas[i].golpeada) {
 					float factorAplastamiento = 1.0f - (estadoMedusas[i].tiempoGolpeada * 1.5f);
 					if (factorAplastamiento < 0.2f) factorAplastamiento = 0.2f;
@@ -1637,7 +1655,6 @@ int main()
 					if (distancia < radioMartillo) {
 						estadoMedusas[i].golpeada = true;
 						estadoMedusas[i].tiempoGolpeada = 0.0f;
-						// Aquí podrías agregar efectos de sonido o incrementar la puntuación
 					}
 				}
 
