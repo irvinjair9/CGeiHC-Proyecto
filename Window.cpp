@@ -18,7 +18,7 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 
 	muevex = 2.0f;
 
-	// Inicialización de variables para Jake
+	// InicializaciÃ³n de variables para Jake
 	posX = 0.0f;
 	posZ = 0.0f;
 	direccion = 0.0f;
@@ -28,8 +28,8 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	piernaIzqAng = 0.0f;
 	enMovimiento = false;
 	velocidadAnim = 3.0f;
-	rangoAnim = 30.0f;  // 30 grados de oscilación para extremidades
-	direccionAnim = true;  // true = hacia adelante, false = hacia atrás
+	rangoAnim = 30.0f;  // 30 grados de oscilaciÃ³n para extremidades
+	direccionAnim = true;  // true = hacia adelante, false = hacia atrÃ¡s
 
 	mouseFirstMoved = true;
 
@@ -40,10 +40,10 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 }
 int Window::Initialise()
 {
-	//Inicialización de GLFW
+	//InicializaciÃ³n de GLFW
 	if (!glfwInit())
 	{
-		printf("Falló inicializar GLFW");
+		printf("FallÃ³ inicializar GLFW");
 		glfwTerminate();
 		return 1;
 	}
@@ -63,7 +63,7 @@ int Window::Initialise()
 		glfwTerminate();
 		return 1;
 	}
-	//Obtener tamaño de Buffer
+	//Obtener tamaÃ±o de Buffer
 	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
 
 	//asignar el contexto
@@ -78,7 +78,7 @@ int Window::Initialise()
 
 	if (glewInit() != GLEW_OK)
 	{
-		printf("Falló inicialización de GLEW");
+		printf("FallÃ³ inicializaciÃ³n de GLEW");
 		glfwDestroyWindow(mainWindow);
 		glfwTerminate();
 		return 1;
@@ -89,7 +89,7 @@ int Window::Initialise()
 
 	//Asignar Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
-	//Callback para detectar que se está usando la ventana
+	//Callback para detectar que se estÃ¡ usando la ventana
 	glfwSetWindowUserPointer(mainWindow, this);
 }
 
@@ -115,10 +115,10 @@ GLfloat Window::getYChange()
 
 void Window::actualizarAnimacionJake()
 {
-	// Si Jake está en movimiento, actualizar la animación de las extremidades
+	// Si Jake estÃ¡ en movimiento, actualizar la animaciÃ³n de las extremidades
 	if (enMovimiento)
 	{
-		// Determinamos la dirección de la animación (oscilación)
+		// Determinamos la direcciÃ³n de la animaciÃ³n (oscilaciÃ³n)
 		if (direccionAnim)
 		{
 			brazoDerAng += velocidadAnim;
@@ -126,7 +126,7 @@ void Window::actualizarAnimacionJake()
 			piernaDerAng -= velocidadAnim;
 			piernaIzqAng += velocidadAnim;
 
-			// Cambiar dirección cuando alcance el límite
+			// Cambiar direcciÃ³n cuando alcance el lÃ­mite
 			if (brazoDerAng >= rangoAnim)
 				direccionAnim = false;
 		}
@@ -137,14 +137,14 @@ void Window::actualizarAnimacionJake()
 			piernaDerAng += velocidadAnim;
 			piernaIzqAng -= velocidadAnim;
 
-			// Cambiar dirección cuando alcance el límite
+			// Cambiar direcciÃ³n cuando alcance el lÃ­mite
 			if (brazoDerAng <= -rangoAnim)
 				direccionAnim = true;
 		}
 	}
 	else
 	{
-		// Si no está en movimiento, regresar lentamente a la posición original
+		// Si no estÃ¡ en movimiento, regresar lentamente a la posiciÃ³n original
 		if (brazoDerAng > 0.5f)
 			brazoDerAng -= 1.0f;
 		else if (brazoDerAng < -0.5f)
@@ -175,7 +175,7 @@ void Window::actualizarAnimacionJake()
 	}
 
 	// Procesar las teclas de movimiento WASD
-	GLfloat velocidad = 0.1f;
+	GLfloat velocidad = 0.25f;
 	enMovimiento = false;
 
 	if (keys[GLFW_KEY_Z])
