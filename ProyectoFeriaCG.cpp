@@ -100,11 +100,49 @@ float tiempoActualMartillo = 0.0f;  // Contador de tiempo para los golpes
 EstadoMedusa estadoMedusas[5];
 
 
+
+// Variables para la animación del lanzamiento del hacha
+float anguloHacha = 0.0f;          // Ángulo de rotación del hacha
+float velocidadHacha = 8.0f;       // Velocidad de rotación del hacha 
+float posHachaZ = 400.0f;          // Posición inicial del hacha en Z
+float posHachaX = -190.0f;         // Posición X del hacha (para variar donde golpea)
+float posHachaY = 5.7f;            // Posición Y del hacha (3.7f + 2.0f inicial)
+float lanzamientoVel = 4.0f;       // Velocidad del lanzamiento 
+bool hachaLanzada = false;         // Estado del hacha (lanzada o no)
+bool hachaEnPared = false;         // Indica si el hacha está clavada en la pared
+float tiempoEnPared = 0.0f;        // Contador para el tiempo que el hacha está en la pared
+float tiempoEnParedMax = 50.0f;    // Tiempo que el hacha permanece en la pared
+// Variables para la animación del brazo con hacha
+float anguloBrazo = 0.0f;          // Ángulo del brazo al lanzar
+float velocidadBrazo = 5.0f;       // Velocidad de movimiento del brazo
+bool preparandoLanzamiento = true; // Estado de preparación del lanzamiento
+float anguloMaxBrazo = -90.0f;     // Ángulo máximo del brazo hacia atrás
+float posicionHachaInicialZ = 400.0f; // Posición inicial del hacha
+float anguloHachaFijo = 45.0f;     // Ángulo fijo cuando el hacha está clavada en la pared
+
+
+
 Window mainWindow;
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 
+
+//Todo lo relacionado a la camara
 Camera camera;
+
+Camera aerocamera;
+
+
+Camera backupCam;
+
+glm::vec3 camPositionBackup;
+GLfloat yawBackup, pitchBackup;
+bool respaldoHecho = false;
+bool camaraJuegoActiva = false;
+
+
+
+
 
 Texture pisoTexture;
 Texture pisoETexture; //Piso del kiosko
@@ -190,6 +228,16 @@ static const char* vShader = "shaders/shader_light.vert";
 
 // Fragment Shader
 static const char* fShader = "shaders/shader_light.frag";
+
+
+
+
+
+
+
+
+
+
 
 
 //función de calculo de normales por promedio de vértices 
@@ -592,6 +640,71 @@ void actualizarAnimaciones(float deltaTime) {
 
 
 
+// LANZAMIENTO DE HACHA-------------------------------------------------------------------
+// Función para generar un número aleatorio en un rango
+float randomFloat(float min, float max) {
+	return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+}
+
+// Función para actualizar la animación del hacha
+void actualizarAnimacionHacha(float deltaTime) {
+	// Rotación constante del hacha mientras está en vuelo
+	if (hachaLanzada && !hachaEnPared) {
+		anguloHacha += velocidadHacha * deltaTime;
+		if (anguloHacha >= 360.0f) {
+			anguloHacha -= 360.0f;
+		}
+	}
+	// Si el hacha no está lanzada ni en la pared
+	if (!hachaLanzada && !hachaEnPared) {
+		// Fase de preparación del lanzamiento
+		if (preparandoLanzamiento) {
+			// Movimiento del brazo hacia atrás
+			anguloBrazo -= velocidadBrazo * deltaTime;
+			if (anguloBrazo <= anguloMaxBrazo) {
+				anguloBrazo = anguloMaxBrazo;
+				preparandoLanzamiento = false;
+			}
+		}
+		else {
+			// Movimiento del brazo hacia adelante
+			anguloBrazo += velocidadBrazo * deltaTime;
+			if (anguloBrazo >= 80.0f) {
+				anguloBrazo = 80.0f;
+				hachaLanzada = true;
+				// Al iniciar el lanzamiento, decidimos el punto de destino aleatorio
+				posHachaX = randomFloat(-200.0f, -180.0f); // Variación en X
+				posHachaY = randomFloat(4.0f, 8.0f);       // Variación en Y
+			}
+		}
+	}
+	// Si el hacha está en vuelo
+	else if (hachaLanzada && !hachaEnPared) {
+		// Movimiento del hacha hacia la pared
+		posHachaZ += lanzamientoVel * deltaTime;
+		// Si el hacha llega a la pared
+		if (posHachaZ >= 468.0f) {
+			posHachaZ = 468.0f;
+			hachaEnPared = true;  // El hacha ahora está clavada en la pared
+			tiempoEnPared = 0.0f; // Iniciamos el contador de tiempo
+		}
+	}
+	// Si el hacha está clavada en la pared
+	else if (hachaEnPared) {
+		// Contamos el tiempo que el hacha permanece en la pared
+		tiempoEnPared += deltaTime;
+		// Si se cumple el tiempo máximo en la pared
+		if (tiempoEnPared >= tiempoEnParedMax) {
+			// Reseteamos los estados para que el hacha reaparezca en la mano
+			hachaLanzada = false;
+			hachaEnPared = false;
+			preparandoLanzamiento = true;
+			anguloBrazo = 0.0f;  // Reset del ángulo del brazo
+			posHachaZ = posicionHachaInicialZ; // Reposicionar el hacha directamente
+		}
+	}
+}
+
 
 
 int main()
@@ -611,9 +724,13 @@ int main()
 	CreateShaders();
 	iniciarFMOD(); //iniciar la musica
 
-
+	//Camara tercera persona
 	camera = Camera(glm::vec3(-10.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 0.3f, 0.5f);
 	
+	//Camara aerea
+	aerocamera = Camera(glm::vec3(0.0f, 300.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -3.0f, 0.0f, 0.0f);
+
+
 	pisoTexture = Texture("Textures/piso.tga");
 	pisoTexture.LoadTextureA();
 
@@ -832,11 +949,18 @@ int main()
 
 		//Recibir eventos del usuario
 		glfwPollEvents();
-		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		if (mainWindow.getCamaraAerea() == 0 && mainWindow.getJuego() == 0) {
+			camera.keyControl(mainWindow.getsKeys(), deltaTime);
+			camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		}
+
+		
+
+
 
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
+		actualizarAnimacionHacha(deltaTime);
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -878,6 +1002,34 @@ int main()
 		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection()); //Luz se mueva respecto a la camara
 
 		//información al shader de fuentes de iluminación
+		
+		
+		//Camara aerea
+		if (mainWindow.getCamaraAerea() == 1 && !respaldoHecho) {
+			// Respaldar la posición y ángulos actuales de la cámara
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+			respaldoHecho = true;
+
+			// Cambiar posición a la aérea
+			camera.setCameraPosition(glm::vec3(0.0f, 500.0f, 0.0f));
+			camera.setYaw(-90.0f); 
+			camera.setPitch(-89.0f);
+		}
+
+		else if (mainWindow.getCamaraAerea() == 0 && respaldoHecho) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			respaldoHecho = false;
+		}
+
+
+
+
+
+
 		
 
 
@@ -1016,6 +1168,9 @@ int main()
 
 		}
 	
+
+
+		
 
 
 
@@ -1240,19 +1395,22 @@ int main()
 		model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaDelArbol.RenderModel();
+
+		//PARA LA ANIMACIÓN DE JAKE
+		mainWindow.actualizarAnimacionJake();
 		
 		//Jake el perro
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 0.5f, mainWindow.getPosZ()));
+		model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 3.2f, mainWindow.getPosZ()));
 		model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f));                  
-		glm::mat4 modelJake = model;                                
+		model = glm::scale(model, glm::vec3(3.0f));
+		glm::mat4 modelJake = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeCuerpo.RenderModel();
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
-		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
@@ -1262,7 +1420,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::rotate(model, glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakeBrazoIzq.RenderModel();
 
@@ -1278,6 +1436,7 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		JakePiernaIzq.RenderModel();
 
+
 		//Prismo
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-200.0f, -1.4f, 470.0));
@@ -1285,13 +1444,16 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
+
+
+		/*
 		//Guitarra de Marceline //CON ESTE SE DEBE DE HACER LA ANIMACIÓN
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
 		model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		MarcelinesGuitar.RenderModel();
-
+		*/
 
 		//AQUÍ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
 		//Recibidor de monedas
@@ -1452,7 +1614,7 @@ int main()
 		static float alturaMoneda = 3.0f;
 		static float rotacionCoin = 0.0f;
 		//Para activar el hacha
-		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1) {
 			
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1481,9 +1643,113 @@ int main()
 
 			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
+
+			//Jake el perro 
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-190.0f, 3.7f, 400.0f));
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			// Rotación para la animación del lanzamiento
+			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			if (!hachaLanzada && !hachaEnPared) {
+				model = glm::translate(model, glm::vec3(-1.7f, 0.0f, 0.0));
+				model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+				model = glm::rotate(model, 1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::scale(model, glm::vec3(50.5f, 50.5f, 50.5f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				MarcelinesGuitar.RenderModel();
+			}
+			else {
+				// Hacha en vuelo o clavada en la pared
+				model = glm::mat4(1.0);
+
+				// Si está en vuelo, la posición irá cambiando pero alineada con el lanzamiento
+				if (hachaLanzada && !hachaEnPared) {
+					// Durante el vuelo, mantenemos la dirección pero con la posición Z cambiante
+					model = glm::translate(model, glm::vec3(-190.0f, 3.7f + 2.0f, posHachaZ));
+					model = glm::rotate(model, glm::radians(anguloHacha), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+				// Si está clavada en la pared, usamos la posición X e Y aleatorias generadas
+				else if (hachaEnPared) {
+					model = glm::translate(model, glm::vec3(posHachaX, posHachaY, posHachaZ));
+					// Usamos el ángulo fijo predeterminado al inicio del lanzamiento
+					model = glm::rotate(model, glm::radians(anguloHachaFijo), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+
+				model = glm::scale(model, glm::vec3(3.0f * 50.5f, 3.0f * 50.5f, 3.0f * 50.5f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				MarcelinesGuitar.RenderModel();
+			}
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+
+		}
+
+		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(-200.0f, 30.0f, 380.0f));
+			camera.setYaw(-270.0f);//Giro en x
+			camera.setPitch(-30.0f);//Giro en z
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
 		}
 
 
+		//Para activar el juego de dardos
 		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
@@ -1518,7 +1784,7 @@ int main()
 
 
 		//Para activar el bateo
-		if (glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+		if (glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 100.0f && mainWindow.getJuego() == 1) {
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1545,10 +1811,8 @@ int main()
 			Coin.RenderModel();
 
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL BATEO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
-
-
 			
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL BATEO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 
 			if (pelotaEnMovimiento) {
@@ -1605,10 +1869,34 @@ int main()
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
+		
+				
+		}
+		if(glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva){
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(85.0f, 30.0f, -420.0f));
+			camera.setYaw(-180.0f);
+			camera.setPitch(-30.0f);
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
 		}
 
+
+
+
 		//Para activar golpear al topo
-		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0f && mainWindow.getJuego() == 1) {
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1789,7 +2077,25 @@ int main()
 
 
 		}
+		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
 
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(-100, 30.0f, -210.0f));
+			camera.setYaw(-180.0f);//Giro en x
+			camera.setPitch(-30.0f);//Giro en z
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
+		}
 		
 
 

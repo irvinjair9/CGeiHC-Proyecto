@@ -32,6 +32,9 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	rangoAnim = 30.0f;  // 30 grados de oscilación para extremidades
 	direccionAnim = true;  // true = hacia adelante, false = hacia atrás
 
+	CamaraAerea = 0.0f; // Inicialmente no está activa
+	
+
 	mouseFirstMoved = true;
 
 	for (size_t i = 0; i < 1024; i++)
@@ -177,7 +180,7 @@ void Window::actualizarAnimacionJake()
 	}
 
 	// Procesar las teclas de movimiento WASD
-	GLfloat velocidad = 0.1f;
+	GLfloat velocidad = 0.25f;
 	enMovimiento = false;
 
 	if (keys[GLFW_KEY_Z])
@@ -247,14 +250,25 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 		theWindow->Lantern = 1;
 	}
 
-	//Para activar el juego
+	//Para activar el juego como a su vez su camara
 	if (key == GLFW_KEY_O && action == GLFW_PRESS)
 	{
 		theWindow->Juego = 0;
 	}
+	
 	if (key == GLFW_KEY_L && action == GLFW_PRESS)
 	{
 		theWindow->Juego = 1;
+	}
+
+	//Para activar la camara aerea
+	if (key == GLFW_KEY_I && action == GLFW_PRESS)
+	{
+		theWindow->CamaraAerea = 0;
+	}
+	if (key == GLFW_KEY_K && action == GLFW_PRESS)
+	{
+		theWindow->CamaraAerea = 1;
 	}
 
 
