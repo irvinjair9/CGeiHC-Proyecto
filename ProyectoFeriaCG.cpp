@@ -30,7 +30,12 @@
 
 FMOD::System* fmodSystem;
 FMOD::Sound* music;
+FMOD::Sound* soundHacha;
+FMOD::Sound* soundBateo;
+FMOD::Sound* soundTopo;
+FMOD::Sound* soundDardos;
 FMOD::Channel* channel = nullptr;
+FMOD::Channel* channelAttraction = nullptr;
 
 
 //para iluminación
@@ -133,8 +138,6 @@ Camera camera;
 Camera aerocamera;
 
 
-Camera backupCam;
-
 glm::vec3 camPositionBackup;
 GLfloat yawBackup, pitchBackup;
 bool respaldoHecho = false;
@@ -228,6 +231,8 @@ static const char* vShader = "shaders/shader_light.vert";
 
 // Fragment Shader
 static const char* fShader = "shaders/shader_light.frag";
+
+
 
 
 
@@ -355,6 +360,11 @@ void iniciarFMOD() {
 	FMOD::System_Create(&fmodSystem);
 	fmodSystem->init(512, FMOD_INIT_NORMAL, 0);
 	fmodSystem->createSound("sounds/Fondo_Feria.wav", FMOD_LOOP_NORMAL, 0, &music);
+	// Sonidos de atracciones
+	fmodSystem->createSound("sounds/hacha.wav", FMOD_LOOP_NORMAL, 0, &soundHacha);
+	fmodSystem->createSound("sounds/beisbol.wav", FMOD_LOOP_NORMAL, 0, &soundBateo);
+	fmodSystem->createSound("sounds/topo.wav", FMOD_LOOP_NORMAL, 0, &soundTopo);
+	fmodSystem->createSound("sounds/dardos.wav", FMOD_LOOP_NORMAL, 0, &soundDardos);
 	fmodSystem->playSound(music, 0, false, &channel);
 }
 
@@ -364,9 +374,77 @@ void actualizarFMOD() {
 
 void liberarFMOD() {
 	music->release();
+	soundHacha->release();
+	soundBateo->release();
+	soundTopo->release();
+	soundDardos->release();
 	fmodSystem->close();
 	fmodSystem->release();
 }
+
+void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
+	static int atraccionActual = -1; // -1 = ninguna, 0 = hacha, 1 = bateo, etc.
+	static bool sonidoReproduciendo = false;
+
+	// Ángulo de visión de la cámara (en radianes)
+	const float anguloVision = glm::radians(45.0f); // Asumiendo un FOV de 45 grados
+
+	// Función para verificar si un punto está dentro del campo de visión
+	auto estaEnCampoVision = [&](glm::vec3 targetPos) {
+		glm::vec3 dirToTarget = glm::normalize(targetPos - camPos);
+		float angulo = acos(glm::dot(camDir, dirToTarget));
+		return angulo < anguloVision;
+		};
+
+	// Posiciones de las atracciones
+	glm::vec3 posHacha(-220.0f, 0.0f, 419.0f);
+	glm::vec3 posBateo(15.0f, 0.0f, -395.0f);
+	glm::vec3 posTopo(-125.0f, 0.0f, -200.0f);
+	glm::vec3 posDardos(-390.0f, 0.0f, 182.0f);
+
+	// Determinar si estamos viendo una atracción
+	int nuevaAtraccion = -1;
+	FMOD::Sound* sonido = nullptr;
+
+	if (estaEnCampoVision(posHacha) && glm::distance(camPos, posHacha) < 100.0f) {
+		nuevaAtraccion = 0;
+		sonido = soundHacha;
+	}
+	else if (estaEnCampoVision(posBateo) && glm::distance(camPos, posBateo) < 100.0f) {
+		nuevaAtraccion = 1;
+		sonido = soundBateo;
+	}
+	else if (estaEnCampoVision(posTopo) && glm::distance(camPos, posTopo) < 100.0f) {
+		nuevaAtraccion = 2;
+		sonido = soundTopo;
+	}
+	else if (estaEnCampoVision(posDardos) && glm::distance(camPos, posDardos) < 100.0f) {
+		nuevaAtraccion = 3;
+		sonido = soundDardos;
+	}
+
+	// Manejar cambios de atracción
+	if (nuevaAtraccion != atraccionActual) {
+		// Detener sonido anterior si está reproduciéndose
+		if (sonidoReproduciendo) {
+			channelAttraction->stop();
+			sonidoReproduciendo = false;
+		}
+
+		// Reproducir nuevo sonido si estamos viendo una atracción
+		if (nuevaAtraccion != -1) {
+			fmodSystem->playSound(sonido, 0, false, &channelAttraction);
+			sonidoReproduciendo = true;
+		}
+
+		atraccionActual = nuevaAtraccion;
+	}
+
+	// Actualizar sistema de audio
+	fmodSystem->update();
+}
+
+
 
 //Creación de bancas para decorar
 void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
@@ -968,6 +1046,9 @@ int main()
 		
 		glm::vec3 camPos = camera.getCameraPosition();
 
+		// Manejar sonidos de atracciones
+		manejarSonidosAtracciones(camera.getCameraPosition(), camera.getCameraDirection());
+
 		if (mainWindow.getLantern() == 1)
 		{
 			//linterna
@@ -1162,19 +1243,31 @@ int main()
 				}
 			}
 
+			if (mainWindow.getJuego() == 1) {
+				//Iluminaciones para atracciones
+				struct LucesAtraccion {
+					glm::vec3 position;
+				};
 
+				std::vector<LucesAtraccion> atracciones = {
+					{{-200.0f, 40.0f, 450.0}}, //Prismo
+					{{-400.0f, 20.0f, 170.0}}, //Dardos
+					{{-130.0f, 40.0f, -210.0}}, //Topo
+					{{0.0f, 6.0f, -420.0}}, //Bate
+				};
 
-
-
+				for (int i = 0; i < atracciones.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+					if (glm::distance(camPos, atracciones[i].position) < 100.0f) {
+						pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+							2.0f, 3.0f,
+							atracciones[i].position.x, atracciones[i].position.y, atracciones[i].position.z,
+							0.3f, 0.05f, 0.01f);
+						pointLightCount++;
+					}
+				}
+			}
 		}
 	
-
-
-		
-
-
-
-
 
 
 		shaderList[0].UseShader();
@@ -1613,6 +1706,13 @@ int main()
 		static bool monedaAnimando = false;
 		static float alturaMoneda = 3.0f;
 		static float rotacionCoin = 0.0f;
+
+
+
+
+
+
+
 		//Para activar el hacha
 		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1) {
 			
@@ -1639,7 +1739,6 @@ int main()
 			model = glm::scale(model, glm::vec3(0.1f));
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Coin.RenderModel();
-
 
 			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
@@ -1727,7 +1826,6 @@ int main()
 
 
 		}
-
 		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
 			//Camara de juego
 			camPositionBackup = camera.getCameraPosition();
@@ -1747,6 +1845,27 @@ int main()
 			camera.setPitch(pitchBackup);
 			camaraJuegoActiva = false;
 		}
+		/*if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1) {
+			//ILUMINACIÓN DE JUEGO
+			spotLights[5] = SpotLight(1.0f, 1.0f, 1.0f,
+				1.0f, 1.5f,
+				-200.0f, 10.0f, 450.0,
+				0.0f, -1.0f, 0.0f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount++;
+		}
+		else if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) > 100.0f && mainWindow.getJuego() == 0) {
+			spotLights[5] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				-200.0f, 10.0f, 450.0,
+				0.0f, -1.0f, 0.0f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+		}*/
+		
+
 
 
 		//Para activar el juego de dardos
@@ -2077,6 +2196,7 @@ int main()
 
 
 		}
+
 		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
 			//Camara de juego
 			camPositionBackup = camera.getCameraPosition();
@@ -2098,8 +2218,7 @@ int main()
 		}
 		
 
-
-
+		
 
 
 
