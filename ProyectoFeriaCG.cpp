@@ -125,6 +125,24 @@ float anguloMaxBrazo = -90.0f;     // Ángulo máximo del brazo hacia atrás
 float posicionHachaInicialZ = 400.0f; // Posición inicial del hacha
 float anguloHachaFijo = 45.0f;     // Ángulo fijo cuando el hacha está clavada en la pared
 
+// Variables para la animación de Bob Esponja 
+float saltoAltura = 0.0f;          // Altura actual del salto
+float saltoCiclo = 0.0f;           // Ciclo para el salto
+float saltoVelocidadCiclo = 5.0f;  // Velocidad del ciclo de salto
+float brazoAngulo = 0.0f;          // Ángulo para los brazos
+float piernaAngulo = 0.0f;         // Ángulo para las piernas
+float posicionZ = -250.0f;         // Posición inicial en Z (centro del rango)
+float movimientoRango = 100.0f;    // Rango de movimiento (de -150 a -350 es 200 unidades, mitad es 100)
+float movimientoVelocidad = 0.5f;  // Velocidad del movimiento
+bool avanzando = false;            // Estado del movimiento (comienza yendo hacia atrás)
+float rotacionY = 0.0f;            // Rotación en Y para cambiar dirección
+
+// Variables para la animación de HaroldN
+float haroldPosX = -150.0f;      // Posición inicial X 
+float haroldTargetX = 50.0f;     // Posición destino X
+float haroldSpeed = 0.5f;        // Velocidad de movimiento
+bool haroldMovingForward = true; // Dirección del movimiento
+
 
 
 Window mainWindow;
@@ -137,8 +155,6 @@ Camera camera;
 
 Camera aerocamera;
 
-
-Camera backupCam;
 
 glm::vec3 camPositionBackup;
 GLfloat yawBackup, pitchBackup;
@@ -188,7 +204,6 @@ Model Cangre;
 Model CasaCalam;
 Model CasaPatricio;
 Model CrustaceoCas;
-Model FredN;
 Model HaroldN;
 Model Jaula;
 Model Pizzas;
@@ -207,6 +222,7 @@ Model Cosmo;
 Model Wanda;
 Model Timmy;
 Model CasaTimmy;
+Model Bolos;
 
 
 Skybox skyboxDay;
@@ -233,6 +249,8 @@ static const char* vShader = "shaders/shader_light.vert";
 
 // Fragment Shader
 static const char* fShader = "shaders/shader_light.frag";
+
+
 
 
 
@@ -783,6 +801,59 @@ void actualizarAnimacionHacha(float deltaTime) {
 	}
 }
 
+void animarBobEsponja(float deltaTime) {
+	// Actualizar ciclo de salto
+	saltoCiclo += saltoVelocidadCiclo * deltaTime;
+	if (saltoCiclo >= 360.0f) {
+		saltoCiclo -= 360.0f;
+	}
+
+	// Calcular altura del salto usando una función seno
+	saltoAltura = 1.0f * sin(glm::radians(saltoCiclo));
+
+	// Calcular ángulos de brazos y piernas para que se muevan al caminar
+	brazoAngulo = 25.0f * sin(glm::radians(saltoCiclo));
+	piernaAngulo = 15.0f * sin(glm::radians(saltoCiclo));
+
+	// Manejar el movimiento adelante/atrás
+	if (avanzando) {
+		posicionZ += movimientoVelocidad * deltaTime;
+		rotacionY = glm::pi<float>(); // 180 grados, mira hacia Z negativo (cuando avanza en Z positivo)
+
+		if (posicionZ >= -150.0f) { // Límite hacia adelante
+			posicionZ = -150.0f;
+			avanzando = false;
+		}
+	}
+	else {
+		posicionZ -= movimientoVelocidad * deltaTime;
+		rotacionY = 0.0f; // 0 grados, mira hacia Z positivo (cuando retrocede en Z negativo)
+
+		if (posicionZ <= -350.0f) { // Límite hacia atrás
+			posicionZ = -350.0f;
+			avanzando = true;
+		}
+	}
+}
+
+void actualizarAnimacionHarold(float deltaTime) {
+	if (haroldMovingForward) {
+		// Movimiento hacia X positivo
+		haroldPosX += haroldSpeed * deltaTime;
+		if (haroldPosX >= haroldTargetX) {
+			haroldPosX = haroldTargetX;
+			haroldMovingForward = false;
+		}
+	}
+	else {
+		// Movimiento hacia X negativo (regreso)
+		haroldPosX -= haroldSpeed * deltaTime;
+		if (haroldPosX <= -150.0f) {
+			haroldPosX = -150.0f;
+			haroldMovingForward = true;
+		}
+	}
+}
 
 
 int main()
@@ -803,7 +874,7 @@ int main()
 	iniciarFMOD(); //iniciar la musica
 
 	//Camara tercera persona
-	camera = Camera(glm::vec3(-10.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 0.3f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, -200.0f, -30.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 0.0f, 0.0f);
 
 	//Camara aerea
 	aerocamera = Camera(glm::vec3(0.0f, 300.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -3.0f, 0.0f, 0.0f);
@@ -906,9 +977,6 @@ int main()
 	CrustaceoCas = Model();
 	CrustaceoCas.LoadModel("Models/CrustaceoCas.obj");
 
-	FredN = Model();
-	FredN.LoadModel("Models/FredN.obj");
-
 	HaroldN = Model();
 	HaroldN.LoadModel("Models/HaroldN.obj");
 
@@ -960,6 +1028,8 @@ int main()
 	Timmy = Model();
 	Timmy.LoadModel("Models/timmy.obj");
 
+	Bolos = Model();
+	Bolos.LoadModel("Models/bolos.obj");
 
 
 
@@ -1039,6 +1109,8 @@ int main()
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
 		actualizarAnimacionHacha(deltaTime);
+		animarBobEsponja(deltaTime);
+		actualizarAnimacionHarold(deltaTime);
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1087,6 +1159,8 @@ int main()
 
 		//Camara aerea
 		if (mainWindow.getCamaraAerea() == 1 && !respaldoHecho) {
+			mainWindow.getCamaraPersona() == 0;
+
 			// Respaldar la posición y ángulos actuales de la cámara
 			camPositionBackup = camera.getCameraPosition();
 			yawBackup = camera.getYaw();
@@ -1094,16 +1168,20 @@ int main()
 			respaldoHecho = true;
 
 			// Cambiar posición a la aérea
-			camera.setCameraPosition(glm::vec3(0.0f, 500.0f, 0.0f));
+			camera.setCameraPosition(glm::vec3(0.0f, 950.0f, 0.0f));
 			camera.setYaw(-90.0f);
 			camera.setPitch(-89.0f);
+
 		}
 
 		else if (mainWindow.getCamaraAerea() == 0 && respaldoHecho) {
+			mainWindow.getCamaraPersona() == 1;
+
 			camera.setCameraPosition(camPositionBackup);
 			camera.setYaw(yawBackup);
 			camera.setPitch(pitchBackup);
 			respaldoHecho = false;
+
 		}
 
 
@@ -1243,18 +1321,30 @@ int main()
 				}
 			}
 
+			if (mainWindow.getJuego() == 1) {
+				//Iluminaciones para atracciones
+				struct LucesAtraccion {
+					glm::vec3 position;
+				};
 
+				std::vector<LucesAtraccion> atracciones = {
+					{{-200.0f, 40.0f, 450.0}}, //Prismo
+					{{-400.0f, 20.0f, 170.0}}, //Dardos
+					{{-130.0f, 40.0f, -210.0}}, //Topo
+					{{0.0f, 6.0f, -420.0}}, //Bate
+				};
 
-
-
+				for (int i = 0; i < atracciones.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+					if (glm::distance(camPos, atracciones[i].position) < 100.0f) {
+						pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+							2.0f, 3.0f,
+							atracciones[i].position.x, atracciones[i].position.y, atracciones[i].position.z,
+							0.3f, 0.05f, 0.01f);
+						pointLightCount++;
+					}
+				}
+			}
 		}
-
-
-
-
-
-
-
 
 
 
@@ -1477,8 +1567,69 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaDelArbol.RenderModel();
 
-		//PARA LA ANIMACIÓN DE JAKE
-		mainWindow.actualizarAnimacionJake();
+		if (mainWindow.getCamaraPersona() == 1 && mainWindow.getCamaraAerea() == 0 && mainWindow.getJuego() == 0) {
+			//PARA LA ANIMACIÓN DE JAKE
+			mainWindow.actualizarAnimacionJake(camera.getYaw());
+
+
+			// Ajusta la cámara para seguir a Jake desde atrás
+			float jakeX = mainWindow.getPosX();
+			float jakeZ = mainWindow.getPosZ();
+			float jakeYaw = mainWindow.getDireccion();
+
+			float distancia = 15.0f;
+			float offsetX = sin(glm::radians(jakeYaw)) * -distancia;
+			float offsetZ = cos(glm::radians(jakeYaw)) * -distancia;
+
+			glm::vec3 camP(jakeX + offsetX, 20.0f, jakeZ + offsetZ);
+			camera.setCameraPosition(camP);
+			camera.setFront(glm::normalize(glm::vec3(jakeX, 3.2f, jakeZ) - camP));
+
+
+			//Jake el perro
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(mainWindow.getPosX(), 3.2f, mainWindow.getPosZ()));
+			model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(3.0f));
+			glm::mat4 modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			model = glm::rotate(model, glm::radians(mainWindow.getPiernaDerAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			model = glm::rotate(model, glm::radians(mainWindow.getPiernaIzqAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+
+		}
+
+
+
+
+
 
 		//Jake el perro
 		model = glm::mat4(1.0);
@@ -1487,7 +1638,7 @@ int main()
 		model = glm::scale(model, glm::vec3(3.0f));
 		glm::mat4 modelJake = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeCuerpo.RenderModel();
+
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
@@ -1495,7 +1646,7 @@ int main()
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoDer.RenderModel();
+
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
@@ -1503,19 +1654,19 @@ int main()
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakeBrazoIzq.RenderModel();
+
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
 		model = glm::rotate(model, glm::radians(mainWindow.getPiernaDerAng()), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaDer.RenderModel();
+
 
 		model = modelJake;
 		model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
 		model = glm::rotate(model, glm::radians(mainWindow.getPiernaIzqAng()), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		JakePiernaIzq.RenderModel();
+
 
 
 		//Prismo
@@ -1525,16 +1676,6 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
-
-
-		/*
-		//Guitarra de Marceline //CON ESTE SE DEBE DE HACER LA ANIMACIÓN
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-200.0f, 2.5f, 450.0));
-		model = glm::scale(model, glm::vec3(100.5f, 100.5f, 100.5f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		MarcelinesGuitar.RenderModel();
-		*/
 
 		//AQUÍ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
 		//Recibidor de monedas
@@ -1568,31 +1709,36 @@ int main()
 
 
 		//Colocar modelos Bob esponja
+		//BOB ESPONJA
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 8.8f, -250.0));
-		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 8.8f + saltoAltura, posicionZ));
+		model = glm::rotate(model, rotacionY, glm::vec3(0.0f, 1.0f, 0.0f)); // Aplicar rotación según dirección
 		model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 		modelaux = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobCuerpo.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(1.9f, -1.0f, 0.0));
+		model = glm::translate(model, glm::vec3(1.9f, -1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-brazoAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobBrazoDer.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-1.9f, -1.0f, 0.0));
+		model = glm::translate(model, glm::vec3(-1.9f, -1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(brazoAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobBrazoIzq.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(0.8f, -2.5f, 0.0));
+		model = glm::translate(model, glm::vec3(0.8f, -2.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(piernaAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobPiernaDer.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-0.8f, -2.5f, 0.0));
+		model = glm::translate(model, glm::vec3(-0.8f, -2.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(-piernaAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobPiernaIzq.RenderModel();
 
@@ -1664,6 +1810,13 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cangre.RenderModel();
 
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(haroldPosX, 10.3f, -345.0f));
+		model = glm::rotate(model, haroldMovingForward ? 0.0f : glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotación según dirección
+		model = glm::scale(model, glm::vec3(1.6f, 1.6f, 1.6f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		HaroldN.RenderModel();
+
 
 		//Bancas
 		RenderBanca(glm::vec3(-48.0f, -1.0f, 25.0f), -1.6f, uniformModel);
@@ -1694,8 +1847,16 @@ int main()
 		static bool monedaAnimando = false;
 		static float alturaMoneda = 3.0f;
 		static float rotacionCoin = 0.0f;
+
+
+
+
+
+
+
 		//Para activar el hacha
 		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1) {
+			mainWindow.getCamaraPersona() == 0;
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1720,7 +1881,6 @@ int main()
 			model = glm::scale(model, glm::vec3(0.1f));
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Coin.RenderModel();
-
 
 			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
@@ -1808,7 +1968,9 @@ int main()
 
 
 		}
-
+		else {
+			mainWindow.getCamaraPersona() == 1;
+		}
 		if (glm::distance(camPos, glm::vec3(-220.0f, alturaMoneda, 419.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
 			//Camara de juego
 			camPositionBackup = camera.getCameraPosition();
@@ -1830,8 +1992,10 @@ int main()
 		}
 
 
+
 		//Para activar el juego de dardos
 		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
+			mainWindow.getCamaraPersona() == 0;
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -1861,7 +2025,9 @@ int main()
 			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 		}
-
+		else {
+			mainWindow.getCamaraPersona() == 1;
+		}
 
 
 		//Para activar el bateo
@@ -1953,6 +2119,9 @@ int main()
 
 
 		}
+		else {
+			mainWindow.getCamaraPersona() == 1;
+		}
 		if (glm::distance(camPos, glm::vec3(15.0f, alturaMoneda, -395.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
 			//Camara de juego
 			camPositionBackup = camera.getCameraPosition();
@@ -1978,6 +2147,8 @@ int main()
 
 		//Para activar golpear al topo
 		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0f && mainWindow.getJuego() == 1) {
+
+			mainWindow.getCamaraPersona() == 0;
 
 			if (!monedaAnimando && alturaMoneda == 3.0f) {
 				monedaAnimando = true;
@@ -2158,6 +2329,10 @@ int main()
 
 
 		}
+		else {
+			mainWindow.getCamaraPersona() == 1;
+		}
+
 		if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
 			//Camara de juego
 			camPositionBackup = camera.getCameraPosition();
@@ -2171,13 +2346,13 @@ int main()
 
 			camaraJuegoActiva = true;
 		}
+
 		else if (glm::distance(camPos, glm::vec3(-125.0f, alturaMoneda, -200.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
 			camera.setCameraPosition(camPositionBackup);
 			camera.setYaw(yawBackup);
 			camera.setPitch(pitchBackup);
 			camaraJuegoActiva = false;
 		}
-
 
 
 
@@ -2232,6 +2407,14 @@ int main()
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Timmy.RenderModel();
+
+		//Bolos
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(100.0f, 2.0f, 300.0));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Bolos.RenderModel();
 
 
 
