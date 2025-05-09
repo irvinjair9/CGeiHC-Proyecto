@@ -34,8 +34,10 @@ public:
 
 	GLfloat getCamaraAerea() { return CamaraAerea; }//Camara aerea
 
+	GLfloat getCamaraPersona() { return CamaraPersona; }//Camara en tercera persona
+
 	// Función para actualizar la animación de Jake
-	void actualizarAnimacionJake();
+	void actualizarAnimacionJake(float yawCamara);
 
 	~Window();
 private:
@@ -56,6 +58,7 @@ private:
 	GLfloat Juego;//para los juego
 
 	GLfloat CamaraAerea;
+	GLfloat CamaraPersona;
 
 	
 

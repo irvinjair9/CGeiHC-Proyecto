@@ -25,13 +25,15 @@ public:
 
 
 	// Getters
-	GLfloat getYaw() const { return yaw; }
+	GLfloat getYaw();
+
 	GLfloat getPitch() const { return pitch; }
 
 	// Setters
 	void setYaw(GLfloat newYaw) { yaw = newYaw; update(); }
 	void setPitch(GLfloat newPitch) { pitch = newPitch; update(); }
 	void setCameraPosition(glm::vec3 newPosition) { position = newPosition; update(); }
+	void setFront(glm::vec3 newFront);
 
 
 
