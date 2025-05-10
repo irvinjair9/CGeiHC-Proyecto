@@ -232,6 +232,11 @@ Skybox skyboxNight;
 Material Material_brillante;
 Material Material_opaco;
 
+//Materiales extra
+Material Material_aluminio;
+Material Material_madera;
+Material Material_jake;
+
 
 //Sphere cabeza = Sphere(0.5, 20, 20);
 GLfloat deltaTime = 0.0f;
@@ -465,7 +470,7 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 
 
 //Creación de bancas para decorar
-void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
+void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.3f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -475,7 +480,7 @@ void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 
 }
 
 //Creación de bancas comedor para decorar
-void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
+void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -485,7 +490,7 @@ void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::ve
 }
 
 //Creación lamparas 
-void RenderLamparaBob(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
+void RenderLamparaBob(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(2.5f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1064,6 +1069,11 @@ int main()
 	Material_brillante = Material(4.0f, 256);
 	Material_opaco = Material(0.3f, 4);
 
+	//Materiales nuevos creados
+	Material Material_aluminio(3.0f, 512); 
+	Material Material_madera(0.3f, 8);
+	Material Material_jake(0.6f, 32); 
+
 
 	//luz direccional, sólo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
@@ -1592,6 +1602,7 @@ int main()
 			model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			glm::mat4 modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -1600,6 +1611,7 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -1608,18 +1620,21 @@ int main()
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
 			model = glm::rotate(model, glm::radians(mainWindow.getPiernaDerAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
 			model = glm::rotate(model, glm::radians(mainWindow.getPiernaIzqAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -1673,6 +1688,7 @@ int main()
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-200.0f, -1.4f, 470.0));
 		model = glm::scale(model, glm::vec3(23.0f, 23.0f, 23.0f));
+		Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
@@ -1776,6 +1792,7 @@ int main()
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
 		modelaux = model;
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Topo.RenderModel();
 
@@ -1789,6 +1806,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 10.0f, -420.0));
 		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
 		modelaux = model;
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Jaula.RenderModel();
 
@@ -1799,6 +1817,7 @@ int main()
 		model = glm::translate(model, glm::vec3(-170.0f, 13.0f, -340.0));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.32f, 0.32f, 0.32f));
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Pizzas.RenderModel();
 
@@ -1807,6 +1826,7 @@ int main()
 		model = glm::translate(model, glm::vec3(50.0f, 9.4f, -120.0));
 		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.3f, 1.3f, 1.3f));
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cangre.RenderModel();
 
@@ -1890,6 +1910,7 @@ int main()
 			model = glm::translate(model, glm::vec3(-190.0f, 3.7f, 400.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -1899,6 +1920,7 @@ int main()
 			// Rotación para la animación del lanzamiento
 			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -1936,16 +1958,19 @@ int main()
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -1953,16 +1978,19 @@ int main()
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -2084,12 +2112,14 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -2097,6 +2127,7 @@ int main()
 			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 			// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
 			model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
@@ -2108,11 +2139,13 @@ int main()
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -2236,6 +2269,7 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -2245,28 +2279,33 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
 			// Aquí aplicamos la rotación del martillo
 			model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
 			model = glm::translate(model, glm::vec3(-2.0f, -0.1f, 0.0));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+			Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Martillo.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
