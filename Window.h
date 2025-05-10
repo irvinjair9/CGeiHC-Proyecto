@@ -32,6 +32,8 @@ public:
 	GLfloat getLantern() { return Lantern; }
 	GLfloat getJuego() { return Juego; }
 
+	GLfloat getDeseo() { return Deseo; }
+
 	GLfloat getCamaraAerea() { return CamaraAerea; }//Camara aerea
 
 	GLfloat getCamaraPersona() { return CamaraPersona; }//Camara en tercera persona
@@ -59,6 +61,8 @@ private:
 
 	GLfloat CamaraAerea;
 	GLfloat CamaraPersona;
+
+	GLfloat Deseo;//para luces al pedir deseo
 
 	
 

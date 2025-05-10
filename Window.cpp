@@ -24,6 +24,8 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	Lantern = 0.0f;
 	Juego = 0.0f;
 
+	Deseo = 0.0f;
+
 	muevex = 2.0f;
 
 	// Inicialización de variables para Jake
@@ -293,6 +295,17 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_J && action == GLFW_PRESS)
 	{
 		theWindow->CamaraPersona = 1;
+	}
+
+
+	//Para activar el deseo
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+	{
+		theWindow->Deseo = 0;
+	}
+	if (key == GLFW_KEY_X && action == GLFW_PRESS)
+	{
+		theWindow->Deseo = 1;
 	}
 
 

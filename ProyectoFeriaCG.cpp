@@ -53,7 +53,7 @@ float angulovaria = 0.0f;
 
 float sunAngle = 0.0f;
 //float sunSpeed = 0.05f;
-float sunSpeed = 0.1f; //Velocidad de rotación del sol
+float sunSpeed = 0.01f; //Velocidad de rotación del sol
 
 
 // Variables para la animación de bateo
@@ -127,6 +127,50 @@ float anguloHachaFijo = 45.0f;     // Ángulo fijo cuando el hacha está clavada e
 
 
 
+// Variables para la animación del lanzamiento del dardo
+float angulodardo = 0.0f;          // Ángulo de rotación del dardo
+float velocidadDardo = 8.0f;       // Velocidad de rotación del dardo 
+float posDardoZ = 200.0f;          // Posición inicial del dardo en Z
+float posDardoX = -400.0f;         // Posición X del dardo (para variar donde golpea)
+float posDardoY = 10.0f;            // Posición Y del dardo (3.7f + 2.0f inicial)
+bool dardoLanzada = false;         // Estado del dardo (lanzada o no)
+bool dardoEnPared = false;         // Indica si el dardo está clavada en la pared
+// Variables para la animación del brazo con dardo
+//float anguloBrazoD = 0.0f;          // Ángulo del brazo al lanzar
+//float velocidadBrazoD = 5.0f;       // Velocidad de movimiento del brazo
+//bool preparandoLanzamientoD = true; // Estado de preparación del lanzamiento
+//float anguloMaxBrazoD = -90.0f;     // Ángulo máximo del brazo hacia atrás
+float posicionDardoInicialZ = 200.0f; // Posición inicial del dardo
+float anguloDardoFijo = 0.0f;     // Ángulo fijo cuando el dardo está clavada en la pared
+
+//Giro de finn
+float anguloGiroFinn = 0.0f; // Ángulo de rotación de Finn
+
+
+
+
+
+
+// Variables para la animación de Bob Esponja 
+float saltoAltura = 0.0f;          // Altura actual del salto
+float saltoCiclo = 0.0f;           // Ciclo para el salto
+float saltoVelocidadCiclo = 5.0f;  // Velocidad del ciclo de salto
+float brazoAngulo = 0.0f;          // Ángulo para los brazos
+float piernaAngulo = 0.0f;         // Ángulo para las piernas
+float posicionZ = -250.0f;         // Posición inicial en Z (centro del rango)
+float movimientoRango = 100.0f;    // Rango de movimiento (de -150 a -350 es 200 unidades, mitad es 100)
+float movimientoVelocidad = 0.5f;  // Velocidad del movimiento
+bool avanzando = false;            // Estado del movimiento (comienza yendo hacia atrás)
+float rotacionY = 0.0f;            // Rotación en Y para cambiar dirección
+
+// Variables para la animación de HaroldN
+float haroldPosX = -150.0f;      // Posición inicial X 
+float haroldTargetX = 50.0f;     // Posición destino X
+float haroldSpeed = 0.5f;        // Velocidad de movimiento
+bool haroldMovingForward = true; // Dirección del movimiento
+
+
+
 Window mainWindow;
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
@@ -167,6 +211,9 @@ Model MarcelinesGuitar;
 Model CoinReceptor;
 Model JuegoDardos;
 Model Dardo;
+Model CasaMarceline;
+Model FINN;
+
 
 
 
@@ -186,7 +233,6 @@ Model Cangre;
 Model CasaCalam;
 Model CasaPatricio;
 Model CrustaceoCas;
-Model FredN;
 Model HaroldN;
 Model Jaula;
 Model Pizzas;
@@ -445,7 +491,7 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 	fmodSystem->update();
 }
 
-
+//---------------------------------------DECORACIONES--------------------------------//
 
 //Creación de bancas para decorar
 void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
@@ -498,7 +544,7 @@ void RenderRecibidorMonedas(glm::vec3 posicion, float rotY, GLuint uniformModel,
 
 
 
-//ANIMACION---------------------------------------------------------------
+//---------------------------------------ANIMACION-----------------------------------//
 
 
 // JAULA DE BATEO -------------------------------------------------------
@@ -785,6 +831,121 @@ void actualizarAnimacionHacha(float deltaTime) {
 }
 
 
+//LANZAMIENTO DE DARDO-------------------------------------------------------------------
+// Función para actualizar animación de dardos 
+void actualizarAnimacionDardo(float deltaTime) {
+	if (dardoLanzada && !dardoEnPared) {
+		angulodardo += velocidadDardo * deltaTime;
+		if (angulodardo >= 360.0f) {
+			angulodardo -= 360.0f;
+		}
+	}
+	
+	if (!dardoLanzada && !dardoEnPared) {
+		// Fase de preparación del lanzamiento
+		if (preparandoLanzamiento) {
+			// Movimiento del brazo hacia atrás
+			anguloBrazo -= velocidadBrazo * deltaTime;
+			if (anguloBrazo <= anguloMaxBrazo) {
+				anguloBrazo = anguloMaxBrazo;
+				preparandoLanzamiento = false;
+			}
+		}
+		else {
+			// Movimiento del brazo hacia adelante
+			anguloBrazo += velocidadBrazo * deltaTime;
+			if (anguloBrazo >= 80.0f) {
+				anguloBrazo = 80.0f;
+				dardoLanzada = true;
+				// Al iniciar el lanzamiento, decidimos el punto de destino aleatorio
+				posDardoX = randomFloat(-410.0f, -390.0f); // Variación en X
+				posDardoY = randomFloat(8.0f, 10.0f);       // Variación en Y
+			}
+		}
+	}
+	else if (dardoLanzada && !dardoEnPared) {
+		posDardoZ += lanzamientoVel * deltaTime;
+		// Si el hacha llega a la pared
+		if (posDardoZ >= 152.0f) {
+			posDardoZ = 152.0f;
+			dardoEnPared = true;  // El hacha ahora está clavada en la pared
+			tiempoEnPared = 0.0f; // Iniciamos el contador de tiempo
+		}
+	}
+	// Si el dardo está clavado en la pared
+	else if (dardoEnPared) {
+		// Contamos el tiempo que el dardo permanece en la pared
+		tiempoEnPared += deltaTime;
+		// Si se cumple el tiempo máximo en la pared
+		if (tiempoEnPared >= tiempoEnParedMax) {
+			// Reseteamos los estados para que el hacha reaparezca en la mano
+			dardoLanzada = false;
+			dardoEnPared = false;
+			preparandoLanzamiento = true;
+			anguloBrazo = 0.0f;  // Reset del ángulo del brazo
+			posDardoZ = posicionDardoInicialZ; // Reposicionar el hacha directamente
+		}
+	}
+}
+
+
+
+
+
+void animarBobEsponja(float deltaTime) {
+	// Actualizar ciclo de salto
+	saltoCiclo += saltoVelocidadCiclo * deltaTime;
+	if (saltoCiclo >= 360.0f) {
+		saltoCiclo -= 360.0f;
+	}
+
+	// Calcular altura del salto usando una función seno
+	saltoAltura = 1.0f * sin(glm::radians(saltoCiclo));
+
+	// Calcular ángulos de brazos y piernas para que se muevan al caminar
+	brazoAngulo = 25.0f * sin(glm::radians(saltoCiclo));
+	piernaAngulo = 15.0f * sin(glm::radians(saltoCiclo));
+
+	// Manejar el movimiento adelante/atrás
+	if (avanzando) {
+		posicionZ += movimientoVelocidad * deltaTime;
+		rotacionY = glm::pi<float>(); // 180 grados, mira hacia Z negativo (cuando avanza en Z positivo)
+
+		if (posicionZ >= -150.0f) { // Límite hacia adelante
+			posicionZ = -150.0f;
+			avanzando = false;
+		}
+	}
+	else {
+		posicionZ -= movimientoVelocidad * deltaTime;
+		rotacionY = 0.0f; // 0 grados, mira hacia Z positivo (cuando retrocede en Z negativo)
+
+		if (posicionZ <= -350.0f) { // Límite hacia atrás
+			posicionZ = -350.0f;
+			avanzando = true;
+		}
+	}
+}
+
+void actualizarAnimacionHarold(float deltaTime) {
+	if (haroldMovingForward) {
+		// Movimiento hacia X positivo
+		haroldPosX += haroldSpeed * deltaTime;
+		if (haroldPosX >= haroldTargetX) {
+			haroldPosX = haroldTargetX;
+			haroldMovingForward = false;
+		}
+	}
+	else {
+		// Movimiento hacia X negativo (regreso)
+		haroldPosX -= haroldSpeed * deltaTime;
+		if (haroldPosX <= -150.0f) {
+			haroldPosX = -150.0f;
+			haroldMovingForward = true;
+		}
+	}
+}
+
 
 int main()
 {
@@ -862,6 +1023,12 @@ int main()
 	Dardo = Model();
 	Dardo.LoadModel("Models/Dardo.obj");
 
+	CasaMarceline = Model();
+	CasaMarceline.LoadModel("Models/CasaMarceline.obj");
+
+	FINN = Model();
+	FINN.LoadModel("Models/Finn.obj");
+
 
 
 
@@ -906,9 +1073,6 @@ int main()
 
 	CrustaceoCas = Model();
 	CrustaceoCas.LoadModel("Models/CrustaceoCas.obj");
-
-	FredN = Model();
-	FredN.LoadModel("Models/FredN.obj");
 
 	HaroldN = Model();
 	HaroldN.LoadModel("Models/HaroldN.obj");
@@ -997,6 +1161,11 @@ int main()
 	Material_brillante = Material(4.0f, 256);
 	Material_opaco = Material(0.3f, 4);
 
+	//Materiales nuevos creados
+	Material Material_aluminio(3.0f, 512);
+	Material Material_madera(0.3f, 8);
+	Material Material_jake(0.6f, 32);
+
 
 	//luz direccional, sólo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
@@ -1042,6 +1211,9 @@ int main()
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
 		actualizarAnimacionHacha(deltaTime);
+		actualizarAnimacionDardo(deltaTime);
+		animarBobEsponja(deltaTime);
+		actualizarAnimacionHarold(deltaTime);
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1057,10 +1229,10 @@ int main()
 			//linterna
 			spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
 				0.0f, 2.0f,
-				0.0f, 0.0f, 0.0f,
+				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
 				0.0f, -1.0f, 0.0f,
 				1.0f, 0.0f, 0.0f,
-				5.0f);
+				25.0f);
 			spotLightCount++;//Encender lampara
 		}
 		else if (mainWindow.getLantern() == 0)
@@ -1068,22 +1240,13 @@ int main()
 			//linterna
 			spotLights[0] = SpotLight(0.0f, 0.0f, 0.0f,
 				0.0f, 2.0f,
-				0.0f, 0.0f, 0.0f,
+				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
 				0.0f, -1.0f, 0.0f,
 				1.0f, 0.0f, 0.0f,
-				5.0f);
+				25.0f);
 			spotLightCount--; //Apagar lampara
 		}
 
-
-
-		// luz ligada a la cámara de tipo flash
-		//sirve para que en tiempo de ejecución (dentro del while) se cambien propiedades de la luz
-
-
-		glm::vec3 lowerLight = camera.getCameraPosition();
-		lowerLight.y -= 0.3f;
-		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection()); //Luz se mueva respecto a la camara
 
 		//información al shader de fuentes de iluminación
 
@@ -1091,7 +1254,7 @@ int main()
 		//Camara aerea
 		if (mainWindow.getCamaraAerea() == 1 && !respaldoHecho) {
 			mainWindow.getCamaraPersona() == 0;
-			
+
 			// Respaldar la posición y ángulos actuales de la cámara
 			camPositionBackup = camera.getCameraPosition();
 			yawBackup = camera.getYaw();
@@ -1102,7 +1265,7 @@ int main()
 			camera.setCameraPosition(glm::vec3(0.0f, 950.0f, 0.0f));
 			camera.setYaw(-90.0f);
 			camera.setPitch(-89.0f);
-			
+
 		}
 
 		else if (mainWindow.getCamaraAerea() == 0 && respaldoHecho) {
@@ -1112,18 +1275,8 @@ int main()
 			camera.setYaw(yawBackup);
 			camera.setPitch(pitchBackup);
 			respaldoHecho = false;
-		
+
 		}
-
-
-
-
-
-
-
-
-
-
 
 
 		//Actualizar ángulo del sol
@@ -1140,6 +1293,39 @@ int main()
 
 		if (direction.y > 0.2f) {
 			skyboxDay.DrawSkybox(camera.calculateViewMatrix(), projection);
+
+			spotLights[1] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				-48.0f, 8.0f, -48.0f,
+				0.5f, -1.0f, 0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[2] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				48.0f, 8.0f, -48.0f,
+				-0.5f, -1.0f, 0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[3] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				-48.0f, 8.0f, 48.0f,
+				0.5f, -1.0f, -0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[4] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				48.0f, 8.0f, 48.0f,
+				-0.5f, -1.0f, -0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
 		}
 		else if (direction.y <= 0.2f) {
 			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
@@ -1226,31 +1412,7 @@ int main()
 			}
 
 
-			//Luces de las varitas
-			struct VaritaLight {
-				glm::vec3 position;
-			};
-
-			std::vector<VaritaLight> varitas = {
-				{{320.0f, 55.f, 0.0f}},
-				{{300.0f, 55.f, 499.0f}},
-				{{-320.0f, 55.f, 0.0f}},
-				{{-300.0f, 55.f, 499.0f}},
-				{{0.0f,   55.f, 320.0f}},
-				{{300.0f, 55.f, -320.0f}},
-				{{-300.0f,55.f, -320.0f}},
-				{{0.0f,   55.f, -499.0f}}
-			};
-
-			for (int i = 0; i < varitas.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
-				if (glm::distance(camPos, varitas[i].position) < 100.0f) {
-					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
-						2.0f, 3.0f,
-						varitas[i].position.x, varitas[i].position.y, varitas[i].position.z,
-						0.3f, 0.05f, 0.01f);
-					pointLightCount++;
-				}
-			}
+			
 
 			if (mainWindow.getJuego() == 1) {
 				//Iluminaciones para atracciones
@@ -1276,6 +1438,38 @@ int main()
 				}
 			}
 		}
+
+
+		//Luces activadas por boton varitas (deseos)
+
+		if(mainWindow.getDeseo() == 1){
+			//Luces de las varitas
+			struct VaritaLight {
+				glm::vec3 position;
+			};
+
+			std::vector<VaritaLight> varitas = {
+				{{320.0f, 55.f, 0.0f}},
+				{{300.0f, 55.f, 499.0f}},
+				{{-320.0f, 55.f, 0.0f}},
+				{{-300.0f, 55.f, 499.0f}},
+				{{0.0f,   55.f, 320.0f}},
+				{{300.0f, 55.f, -320.0f}},
+				{{-300.0f,55.f, -320.0f}},
+				{{0.0f,   55.f, -499.0f}}
+			};
+
+			for (int i = 0; i < varitas.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+				if (glm::distance(camPos, varitas[i].position) < 100.0f) {
+					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+						2.0f, 3.0f,
+						varitas[i].position.x, varitas[i].position.y, varitas[i].position.z,
+						0.3f, 0.05f, 0.01f);
+					pointLightCount++;
+				}
+			}
+		}
+	
 
 
 
@@ -1523,6 +1717,7 @@ int main()
 			model = glm::rotate(model, glm::radians(mainWindow.getDireccion()), glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			glm::mat4 modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -1531,6 +1726,7 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, glm::radians(mainWindow.getBrazoDerAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -1539,18 +1735,21 @@ int main()
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, -glm::radians(mainWindow.getBrazoIzqAng()), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
 			model = glm::rotate(model, glm::radians(mainWindow.getPiernaDerAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
 			model = glm::rotate(model, glm::radians(mainWindow.getPiernaIzqAng()), glm::vec3(1.0f, 0.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -1558,7 +1757,7 @@ int main()
 		}
 
 
-		
+
 
 
 
@@ -1604,6 +1803,7 @@ int main()
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-200.0f, -1.4f, 470.0));
 		model = glm::scale(model, glm::vec3(23.0f, 23.0f, 23.0f));
+		Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Prismo.RenderModel();
 
@@ -1624,13 +1824,26 @@ int main()
 
 
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-400.0f, 10.0f, 155.0));
-		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		model = glm::translate(model, glm::vec3(-150.0f, 0.0f, 150.0));
+		model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Dardo.RenderModel();
+		CasaMarceline.RenderModel();
 
 
+	
+		//FINN
 
+		anguloGiroFinn += deltaTime * 20.0f; // Ajusta la velocidad
+		if (anguloGiroFinn > 360.0f) anguloGiroFinn -= 360.0f;
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-300.0f, -1.0f, 150.0f));
+		model = glm::rotate(model, glm::radians(anguloGiroFinn), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f));
+		Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		FINN.RenderModel();
 
 
 
@@ -1640,31 +1853,36 @@ int main()
 
 
 		//Colocar modelos Bob esponja
+		//BOB ESPONJA
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 8.8f, -250.0));
-		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 8.8f + saltoAltura, posicionZ));
+		model = glm::rotate(model, rotacionY, glm::vec3(0.0f, 1.0f, 0.0f)); // Aplicar rotación según dirección
 		model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 		modelaux = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobCuerpo.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(1.9f, -1.0f, 0.0));
+		model = glm::translate(model, glm::vec3(1.9f, -1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-brazoAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobBrazoDer.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-1.9f, -1.0f, 0.0));
+		model = glm::translate(model, glm::vec3(-1.9f, -1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(brazoAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobBrazoIzq.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(0.8f, -2.5f, 0.0));
+		model = glm::translate(model, glm::vec3(0.8f, -2.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(piernaAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobPiernaDer.RenderModel();
 
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-0.8f, -2.5f, 0.0));
+		model = glm::translate(model, glm::vec3(-0.8f, -2.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(-piernaAngulo), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BobPiernaIzq.RenderModel();
 
@@ -1702,6 +1920,7 @@ int main()
 		model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
 		modelaux = model;
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Topo.RenderModel();
 
@@ -1715,6 +1934,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, 10.0f, -420.0));
 		model = glm::scale(model, glm::vec3(2.3f, 2.3f, 2.3f));
 		modelaux = model;
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Jaula.RenderModel();
 
@@ -1725,6 +1945,7 @@ int main()
 		model = glm::translate(model, glm::vec3(-170.0f, 13.0f, -340.0));
 		model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.32f, 0.32f, 0.32f));
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Pizzas.RenderModel();
 
@@ -1733,8 +1954,16 @@ int main()
 		model = glm::translate(model, glm::vec3(50.0f, 9.4f, -120.0));
 		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.3f, 1.3f, 1.3f));
+		Material_aluminio.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cangre.RenderModel();
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(haroldPosX, 10.3f, -345.0f));
+		model = glm::rotate(model, haroldMovingForward ? 0.0f : glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotación según dirección
+		model = glm::scale(model, glm::vec3(1.6f, 1.6f, 1.6f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		HaroldN.RenderModel();
 
 
 		//Bancas
@@ -1809,6 +2038,7 @@ int main()
 			model = glm::translate(model, glm::vec3(-190.0f, 3.7f, 400.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -1818,6 +2048,7 @@ int main()
 			// Rotación para la animación del lanzamiento
 			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -1855,16 +2086,19 @@ int main()
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -1872,16 +2106,19 @@ int main()
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -2003,12 +2240,14 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
@@ -2016,6 +2255,7 @@ int main()
 			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
 			// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
 			model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
@@ -2027,11 +2267,13 @@ int main()
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
@@ -2155,6 +2397,7 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(3.0f));
 			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeCuerpo.RenderModel();
 
@@ -2164,28 +2407,33 @@ int main()
 			model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
 			// Aquí aplicamos la rotación del martillo
 			model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoDer.RenderModel();
 
 			model = glm::translate(model, glm::vec3(-2.0f, -0.1f, 0.0));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+			Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Martillo.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakeBrazoIzq.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaDer.RenderModel();
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
