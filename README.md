@@ -21,3 +21,5 @@ ___
 ___
 ### SEMESTRE 2025-2
 
+###Liga de modelos, texturas y audio: https://drive.google.com/drive/folders/1poX2qTSr1zO-lrtWfeUnUC9HnPsvDEBA?usp=sharing
+
