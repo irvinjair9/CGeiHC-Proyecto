@@ -261,6 +261,11 @@ Skybox skyboxNight;
 Material Material_brillante;
 Material Material_opaco;
 
+//Materiales extra
+Material Material_aluminio;
+Material Material_madera;
+Material Material_jake;
+
 
 //Sphere cabeza = Sphere(0.5, 20, 20);
 GLfloat deltaTime = 0.0f;
@@ -840,7 +845,7 @@ void actualizarAnimacionDardo(float deltaTime) {
 			angulodardo -= 360.0f;
 		}
 	}
-	
+
 	if (!dardoLanzada && !dardoEnPared) {
 		// Fase de preparación del lanzamiento
 		if (preparandoLanzamiento) {
@@ -1412,7 +1417,7 @@ int main()
 			}
 
 
-			
+
 
 			if (mainWindow.getJuego() == 1) {
 				//Iluminaciones para atracciones
@@ -1442,7 +1447,7 @@ int main()
 
 		//Luces activadas por boton varitas (deseos)
 
-		if(mainWindow.getDeseo() == 1){
+		if (mainWindow.getDeseo() == 1) {
 			//Luces de las varitas
 			struct VaritaLight {
 				glm::vec3 position;
@@ -1469,7 +1474,7 @@ int main()
 				}
 			}
 		}
-	
+
 
 
 
@@ -1832,7 +1837,7 @@ int main()
 		CasaMarceline.RenderModel();
 
 
-	
+
 		//FINN
 
 		anguloGiroFinn += deltaTime * 20.0f; // Ajusta la velocidad
@@ -2149,6 +2154,24 @@ int main()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		//Para activar el juego de dardos
 		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
 			mainWindow.getCamaraPersona() == 0;
@@ -2178,12 +2201,117 @@ int main()
 			Coin.RenderModel();
 
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL DARDO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-400.0f, 3.7f, 200.0f));
+			model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Ahora mira hacia -Z
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			// Brazo derecho lanzando
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			// Dardo en la mano
+			if (!dardoLanzada && !dardoEnPared) {
+				model = glm::translate(model, glm::vec3(-1.2f, 0.0f, 0.2f));
+				model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); 
+				model = glm::scale(model, glm::vec3(3.0f)); 
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Dardo.RenderModel();
+			}
+			// Dardo lanzado o clavado
+			else {
+				model = glm::mat4(1.0);
+
+				if (dardoLanzada && !dardoEnPared) {
+					model = glm::translate(model, glm::vec3(-400.0f, 5.7f, posDardoZ)); // eje Z NEGATIVO
+					model = glm::rotate(model, glm::radians(angulodardo), glm::vec3(0.0f, 0.0f, 1.0f)); // giro sobre eje Z
+				}
+				else if (dardoEnPared) {
+					model = glm::translate(model, glm::vec3(posDardoX, posDardoY, posDardoZ));
+					model = glm::rotate(model, glm::radians(anguloDardoFijo), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+
+				model = glm::scale(model, glm::vec3(20.0f)); 
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Dardo.RenderModel();
+			}
+
+			// Brazo izquierdo
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			// Pierna derecha
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			// Pierna izquierda
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
 
 		}
 		else {
 			mainWindow.getCamaraPersona() == 1;
 		}
+
+
+		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(-400.0f, 30.0f, 220.0f));
+			camera.setYaw(-90.0f);//Giro en x
+			camera.setPitch(-30.0f);//Giro en z
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 		//Para activar el bateo
