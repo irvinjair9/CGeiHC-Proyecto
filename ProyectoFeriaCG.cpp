@@ -34,11 +34,13 @@ FMOD::Sound* soundHacha;
 FMOD::Sound* soundBateo;
 FMOD::Sound* soundTopo;
 FMOD::Sound* soundDardos;
+FMOD::Sound* soundBolos;
+FMOD::Sound* soundDados;
 FMOD::Channel* channel = nullptr;
 FMOD::Channel* channelAttraction = nullptr;
 
 
-//para iluminación
+//para iluminaciÃ³n
 #include "CommonValues.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
@@ -48,57 +50,57 @@ const float toRadians = 3.14159265f / 180.0f;
 
 
 
-//Constante para la animación
+//Constante para la animaciÃ³n
 float angulovaria = 0.0f;
 
 float sunAngle = 0.0f;
 //float sunSpeed = 0.05f;
-float sunSpeed = 0.1f; //Velocidad de rotación del sol
+float sunSpeed = 0.01f; //Velocidad de rotaciÃ³n del sol
 
 
 // Variables para la animación de bateo
 float tiempoLanzamiento = 0.0f;          // Contador para el lanzamiento de pelotas
 const float intervaloLanzamiento = 3.0f;  // Intervalo de 3 segundos entre lanzamientos
-bool pelotaEnMovimiento = false;         // Indica si la pelota está en movimiento
+bool pelotaEnMovimiento = false;         // Indica si la pelota estÃ¡ en movimiento
 float velocidadPelota = 1.0f;           // Velocidad de la pelota
-glm::vec3 posicionPelota;                // Posición actual de la pelota
-glm::vec3 posicionInicial;               // Posición inicial de la pelota
+glm::vec3 posicionPelota;                // PosiciÃ³n actual de la pelota
+glm::vec3 posicionInicial;               // PosiciÃ³n inicial de la pelota
 float distanciaPelota = 0.0f;            // Distancia recorrida por la pelota
 
 // Variables para la animación del brazo y bate
-float anguloGolpe = 0.0f;                // Ángulo de rotación para el golpe
-float velocidadGolpe = 0.95f;           // Velocidad de rotación del brazo
-bool preparandoGolpe = false;            // Indica si está preparando el golpe
-bool batGolpeando = false;               // Indica si el bat está golpeando
-bool regresandoBat = false;              // Indica si el bat está regresando a posición
+float anguloGolpe = 0.0f;                // Ãngulo de rotaciÃ³n para el golpe
+float velocidadGolpe = 0.95f;           // Velocidad de rotaciÃ³n del brazo
+bool preparandoGolpe = false;            // Indica si estÃ¡ preparando el golpe
+bool batGolpeando = false;               // Indica si el bat estÃ¡ golpeando
+bool regresandoBat = false;              // Indica si el bat estÃ¡ regresando a posiciÃ³n
 
 // Variables para controlar la aparición/desaparición de las medusas
 struct EstadoMedusa {
-	bool visible;          // Si la medusa está visible o no
-	float altura;          // Posición Y actual de la medusa
-	float alturaInicial;   // Altura base cuando está oculta
-	float alturaMaxima;    // Altura máxima cuando está completamente visible
+	bool visible;          // Si la medusa estÃ¡ visible o no
+	float altura;          // PosiciÃ³n Y actual de la medusa
+	float alturaInicial;   // Altura base cuando estÃ¡ oculta
+	float alturaMaxima;    // Altura mÃ¡xima cuando estÃ¡ completamente visible
 	float velocidad;       // Velocidad de movimiento
-	float tiempoVisible;   // Cuánto tiempo permanece visible
+	float tiempoVisible;   // CuÃ¡nto tiempo permanece visible
 	float tiempoActual;    // Contador de tiempo actual
 	bool golpeada;         // Si fue golpeada por el martillo
 	float tiempoGolpeada;  // Tiempo que lleva golpeada
 };
 
-// Variables adicionales para ciclos de aparición de medusas
+// Variables adicionales para ciclos de apariciÃ³n de medusas
 float cicloAparicion = 50.0f;       // Tiempo total del ciclo completo
-float tiempoEntreApariciones = 4.0f; // Tiempo entre cada aparición de medusa
+float tiempoEntreApariciones = 4.0f; // Tiempo entre cada apariciÃ³n de medusa
 float tiempoActualCiclo = 0.0f;    // Contador del ciclo actual
 
-// Variables para la animación de Jake (martillo)
+// Variables para la animaciÃ³n de Jake (martillo)
 float anguloMartillo = 0.0f;
 bool martilloEnMovimiento = false;
 float velocidadMartillo = 5.0f;
 float anguloMaximoMartillo = 90.0f;
 bool martilloSubiendo = false;
 
-// Variables adicionales para controlar el movimiento automático del martillo
-float tiempoEntreGolpes = 0.1f;     // Tiempo entre golpes automáticos del martillo
+// Variables adicionales para controlar el movimiento automÃ¡tico del martillo
+float tiempoEntreGolpes = 0.1f;     // Tiempo entre golpes automÃ¡ticos del martillo
 float tiempoActualMartillo = 0.0f;  // Contador de tiempo para los golpes
 
 // Crear un arreglo para controlar el estado de cada medusa 
@@ -106,42 +108,68 @@ EstadoMedusa estadoMedusas[5];
 
 
 
-// Variables para la animación del lanzamiento del hacha
-float anguloHacha = 0.0f;          // Ángulo de rotación del hacha
-float velocidadHacha = 8.0f;       // Velocidad de rotación del hacha 
-float posHachaZ = 400.0f;          // Posición inicial del hacha en Z
-float posHachaX = -190.0f;         // Posición X del hacha (para variar donde golpea)
-float posHachaY = 5.7f;            // Posición Y del hacha (3.7f + 2.0f inicial)
+// Variables para la animaciÃ³n del lanzamiento del hacha
+float anguloHacha = 0.0f;          // Ãngulo de rotaciÃ³n del hacha
+float velocidadHacha = 8.0f;       // Velocidad de rotaciÃ³n del hacha 
+float posHachaZ = 400.0f;          // PosiciÃ³n inicial del hacha en Z
+float posHachaX = -190.0f;         // PosiciÃ³n X del hacha (para variar donde golpea)
+float posHachaY = 5.7f;            // PosiciÃ³n Y del hacha (3.7f + 2.0f inicial)
 float lanzamientoVel = 4.0f;       // Velocidad del lanzamiento 
 bool hachaLanzada = false;         // Estado del hacha (lanzada o no)
-bool hachaEnPared = false;         // Indica si el hacha está clavada en la pared
-float tiempoEnPared = 0.0f;        // Contador para el tiempo que el hacha está en la pared
+bool hachaEnPared = false;         // Indica si el hacha estÃ¡ clavada en la pared
+float tiempoEnPared = 0.0f;        // Contador para el tiempo que el hacha estÃ¡ en la pared
 float tiempoEnParedMax = 50.0f;    // Tiempo que el hacha permanece en la pared
-// Variables para la animación del brazo con hacha
-float anguloBrazo = 0.0f;          // Ángulo del brazo al lanzar
+// Variables para la animaciÃ³n del brazo con hacha
+float anguloBrazo = 0.0f;          // Ãngulo del brazo al lanzar
 float velocidadBrazo = 5.0f;       // Velocidad de movimiento del brazo
-bool preparandoLanzamiento = true; // Estado de preparación del lanzamiento
-float anguloMaxBrazo = -90.0f;     // Ángulo máximo del brazo hacia atrás
-float posicionHachaInicialZ = 400.0f; // Posición inicial del hacha
-float anguloHachaFijo = 45.0f;     // Ángulo fijo cuando el hacha está clavada en la pared
+bool preparandoLanzamiento = true; // Estado de preparaciÃ³n del lanzamiento
+float anguloMaxBrazo = -90.0f;     // Ãngulo mÃ¡ximo del brazo hacia atrÃ¡s
+float posicionHachaInicialZ = 400.0f; // PosiciÃ³n inicial del hacha
+float anguloHachaFijo = 45.0f;     // Ãngulo fijo cuando el hacha estÃ¡ clavada en la pared
 
-// Variables para la animación de Bob Esponja 
+
+
+// Variables para la animaciÃ³n del lanzamiento del dardo
+float angulodardo = 0.0f;          // Ãngulo de rotaciÃ³n del dardo
+float velocidadDardo = 8.0f;       // Velocidad de rotaciÃ³n del dardo 
+float posDardoZ = 200.0f;          // PosiciÃ³n inicial del dardo en Z
+float posDardoX = -400.0f;         // PosiciÃ³n X del dardo (para variar donde golpea)
+float posDardoY = 10.0f;            // PosiciÃ³n Y del dardo (3.7f + 2.0f inicial)
+bool dardoLanzada = false;         // Estado del dardo (lanzada o no)
+bool dardoEnPared = false;         // Indica si el dardo estÃ¡ clavada en la pared
+// Variables para la animaciÃ³n del brazo con dardo
+//float anguloBrazoD = 0.0f;          // Ãngulo del brazo al lanzar
+//float velocidadBrazoD = 5.0f;       // Velocidad de movimiento del brazo
+//bool preparandoLanzamientoD = true; // Estado de preparaciÃ³n del lanzamiento
+//float anguloMaxBrazoD = -90.0f;     // Ãngulo mÃ¡ximo del brazo hacia atrÃ¡s
+float posicionDardoInicialZ = 200.0f; // PosiciÃ³n inicial del dardo
+float anguloDardoFijo = 0.0f;     // Ãngulo fijo cuando el dardo estÃ¡ clavada en la pared
+
+//Giro de finn
+float anguloGiroFinn = 0.0f; // Ãngulo de rotaciÃ³n de Finn
+
+
+
+
+
+
+// Variables para la animaciÃ³n de Bob Esponja 
 float saltoAltura = 0.0f;          // Altura actual del salto
 float saltoCiclo = 0.0f;           // Ciclo para el salto
 float saltoVelocidadCiclo = 5.0f;  // Velocidad del ciclo de salto
-float brazoAngulo = 0.0f;          // Ángulo para los brazos
-float piernaAngulo = 0.0f;         // Ángulo para las piernas
-float posicionZ = -250.0f;         // Posición inicial en Z (centro del rango)
+float brazoAngulo = 0.0f;          // Ãngulo para los brazos
+float piernaAngulo = 0.0f;         // Ãngulo para las piernas
+float posicionZ = -250.0f;         // PosiciÃ³n inicial en Z (centro del rango)
 float movimientoRango = 100.0f;    // Rango de movimiento (de -150 a -350 es 200 unidades, mitad es 100)
 float movimientoVelocidad = 0.5f;  // Velocidad del movimiento
-bool avanzando = false;            // Estado del movimiento (comienza yendo hacia atrás)
-float rotacionY = 0.0f;            // Rotación en Y para cambiar dirección
+bool avanzando = false;            // Estado del movimiento (comienza yendo hacia atrÃ¡s)
+float rotacionY = 0.0f;            // RotaciÃ³n en Y para cambiar direcciÃ³n
 
-// Variables para la animación de HaroldN
-float haroldPosX = -150.0f;      // Posición inicial X 
-float haroldTargetX = 50.0f;     // Posición destino X
+// Variables para la animaciÃ³n de HaroldN
+float haroldPosX = -150.0f;      // PosiciÃ³n inicial X 
+float haroldTargetX = 50.0f;     // PosiciÃ³n destino X
 float haroldSpeed = 0.5f;        // Velocidad de movimiento
-bool haroldMovingForward = true; // Dirección del movimiento
+bool haroldMovingForward = true; // DirecciÃ³n del movimiento
 
 
 
@@ -170,7 +198,7 @@ Texture pisoETexture; //Piso del kiosko
 Texture pisoH; //Piso Hora de aventura
 Texture pisoB; //Piso Bob Esponja
 Texture pisoL; //Piso Los padrinos magicos
-Texture camino; //Piso camino de conexión
+Texture camino; //Piso camino de conexiÃ³n
 
 //Modelos hora de aventura
 Model BMO;
@@ -185,6 +213,9 @@ Model MarcelinesGuitar;
 Model CoinReceptor;
 Model JuegoDardos;
 Model Dardo;
+Model CasaMarceline;
+Model FINN;
+
 
 
 
@@ -268,7 +299,7 @@ static const char* fShader = "shaders/shader_light.frag";
 
 
 
-//función de calculo de normales por promedio de vértices 
+//funciÃ³n de calculo de normales por promedio de vÃ©rtices 
 void calcAverageNormals(unsigned int* indices, unsigned int indiceCount, GLfloat* vertices, unsigned int verticeCount,
 	unsigned int vLength, unsigned int normalOffset)
 {
@@ -378,7 +409,7 @@ void CreateShaders()
 	shaderList.push_back(*shader1);
 }
 
-//Función para la musica con Fmod
+//FunciÃ³n para la musica con Fmod
 void iniciarFMOD() {
 	FMOD::System_Create(&fmodSystem);
 	fmodSystem->init(512, FMOD_INIT_NORMAL, 0);
@@ -388,6 +419,7 @@ void iniciarFMOD() {
 	fmodSystem->createSound("sounds/beisbol.wav", FMOD_LOOP_NORMAL, 0, &soundBateo);
 	fmodSystem->createSound("sounds/topo.wav", FMOD_LOOP_NORMAL, 0, &soundTopo);
 	fmodSystem->createSound("sounds/dardos.wav", FMOD_LOOP_NORMAL, 0, &soundDardos);
+	fmodSystem->createSound("sounds/Bolos.wav", FMOD_LOOP_NORMAL, 0, &soundBolos);
 	fmodSystem->playSound(music, 0, false, &channel);
 }
 
@@ -401,6 +433,8 @@ void liberarFMOD() {
 	soundBateo->release();
 	soundTopo->release();
 	soundDardos->release();
+	soundBolos->release();
+	soundDados->release();
 	fmodSystem->close();
 	fmodSystem->release();
 }
@@ -409,10 +443,10 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 	static int atraccionActual = -1; // -1 = ninguna, 0 = hacha, 1 = bateo, etc.
 	static bool sonidoReproduciendo = false;
 
-	// Ángulo de visión de la cámara (en radianes)
+	// Ãngulo de visiÃ³n de la cÃ¡mara (en radianes)
 	const float anguloVision = glm::radians(45.0f); // Asumiendo un FOV de 45 grados
 
-	// Función para verificar si un punto está dentro del campo de visión
+	// FunciÃ³n para verificar si un punto estÃ¡ dentro del campo de visiÃ³n
 	auto estaEnCampoVision = [&](glm::vec3 targetPos) {
 		glm::vec3 dirToTarget = glm::normalize(targetPos - camPos);
 		float angulo = acos(glm::dot(camDir, dirToTarget));
@@ -424,8 +458,10 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 	glm::vec3 posBateo(15.0f, 0.0f, -395.0f);
 	glm::vec3 posTopo(-125.0f, 0.0f, -200.0f);
 	glm::vec3 posDardos(-390.0f, 0.0f, 182.0f);
+	glm::vec3 posBolos(100.0f, 2.0f, 300.0);
+	//glm::vec3 posDados(POSICIÓN DE LOS DADOS);
 
-	// Determinar si estamos viendo una atracción
+	// Determinar si estamos viendo una atracciÃ³n
 	int nuevaAtraccion = -1;
 	FMOD::Sound* sonido = nullptr;
 
@@ -445,16 +481,24 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 		nuevaAtraccion = 3;
 		sonido = soundDardos;
 	}
+	else if (estaEnCampoVision(posBolos) && glm::distance(camPos, posBolos) < 100.0f) {
+		nuevaAtraccion = 4;
+		sonido = soundBolos;
+	}
+	//else if (estaEnCampoVision(posDados) && glm::distance(camPos, posDados) < 100.0f) {
+	//	nuevaAtraccion = 5;
+	//	sonido = soundDados;
+	//}
 
-	// Manejar cambios de atracción
+	// Manejar cambios de atracciÃ³n
 	if (nuevaAtraccion != atraccionActual) {
-		// Detener sonido anterior si está reproduciéndose
+		// Detener sonido anterior si estÃ¡ reproduciÃ©ndose
 		if (sonidoReproduciendo) {
 			channelAttraction->stop();
 			sonidoReproduciendo = false;
 		}
 
-		// Reproducir nuevo sonido si estamos viendo una atracción
+		// Reproducir nuevo sonido si estamos viendo una atracciÃ³n
 		if (nuevaAtraccion != -1) {
 			fmodSystem->playSound(sonido, 0, false, &channelAttraction);
 			sonidoReproduciendo = true;
@@ -467,10 +511,10 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 	fmodSystem->update();
 }
 
+//---------------------------------------DECORACIONES--------------------------------//
 
-
-//Creación de bancas para decorar
-void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.3f)) {
+//CreaciÃ³n de bancas para decorar
+void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -479,8 +523,8 @@ void RenderBanca(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 
 	Banca.RenderModel();
 }
 
-//Creación de bancas comedor para decorar
-void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(1.0f)) {
+//CreaciÃ³n de bancas comedor para decorar
+void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -489,8 +533,8 @@ void RenderBancaCom(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::ve
 	BancaCom.RenderModel();
 }
 
-//Creación lamparas 
-void RenderLamparaBob(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(2.5f)) {
+//CreaciÃ³n lamparas 
+void RenderLamparaBob(glm::vec3 posicion, float rotY, GLuint uniformModel, glm::vec3 escala = glm::vec3(0.7f)) {
 	glm::mat4 base = glm::mat4(1.0f);
 	base = glm::translate(base, posicion);
 	base = glm::rotate(base, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -520,7 +564,7 @@ void RenderRecibidorMonedas(glm::vec3 posicion, float rotY, GLuint uniformModel,
 
 
 
-//ANIMACION---------------------------------------------------------------
+//---------------------------------------ANIMACION-----------------------------------//
 
 
 // JAULA DE BATEO -------------------------------------------------------
@@ -534,7 +578,7 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		tiempoLanzamiento = 0.0f;
 		pelotaEnMovimiento = true;
 		distanciaPelota = 0.0f;
-		// Guardar la posición inicial de la pelota (según tu código)
+		// Guardar la posiciÃ³n inicial de la pelota (segÃºn tu cÃ³digo)
 		posicionInicial = glm::vec3(-23.0f, -0.3f, -1.5f);
 		posicionPelota = posicionInicial;
 
@@ -543,12 +587,12 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		anguloGolpe = 0.0f;
 	}
 
-	// Si la pelota está en movimiento, actualizar su posición
+	// Si la pelota estÃ¡ en movimiento, actualizar su posiciÃ³n
 	if (pelotaEnMovimiento) {
 		// Calcular la nueva distancia recorrida
 		distanciaPelota += velocidadPelota * deltaTime;
 
-		// Calcular la posición interpolada de la pelota desde la máquina hasta cerca de Jake
+		// Calcular la posiciÃ³n interpolada de la pelota desde la mÃ¡quina hasta cerca de Jake
 		float t = distanciaPelota / 100.0f;
 		if (t > 1.0f) t = 1.0f;
 
@@ -556,10 +600,10 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 		float newX = posicionInicial.x + t * 100.0f; // Mover 50 unidades en X
 		float newY = posicionInicial.y;
 
-		// Actualizar la posición de la pelota
+		// Actualizar la posiciÃ³n de la pelota
 		posicionPelota = glm::vec3(newX, newY, posicionInicial.z);
 
-		// Si la pelota llega cerca de Jake (donde está el bat)
+		// Si la pelota llega cerca de Jake (donde estÃ¡ el bat)
 		if (t >= 0.7f && !batGolpeando && preparandoGolpe) {
 			// Iniciar el golpe
 			batGolpeando = true;
@@ -568,21 +612,21 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 
 		// Si la pelota completa su recorrido
 		if (t >= 1.0f) {
-			// Reiniciar para el próximo lanzamiento
+			// Reiniciar para el prÃ³ximo lanzamiento
 			pelotaEnMovimiento = false;
 		}
 	}
 
-	// Animación del brazo y bate
+	// AnimaciÃ³n del brazo y bate
 	if (preparandoGolpe) {
-		// Preparación: llevar el brazo hacia atrás
+		// PreparaciÃ³n: llevar el brazo hacia atrÃ¡s
 		anguloGolpe -= velocidadGolpe * 0.5f * deltaTime;
 		if (anguloGolpe <= -45.0f) {
 			anguloGolpe = -45.0f;
 		}
 	}
 	else if (batGolpeando) {
-		// Golpe: mover el brazo hacia adelante rápidamente
+		// Golpe: mover el brazo hacia adelante rÃ¡pidamente
 		anguloGolpe += velocidadGolpe * deltaTime;
 		if (anguloGolpe >= 30.0f) {
 			anguloGolpe = 30.0f;
@@ -590,20 +634,20 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 			regresandoBat = true;
 		}
 
-		// Si el bat golpea la pelota (detección simple de colisión)
+		// Si el bat golpea la pelota (detecciÃ³n simple de colisiÃ³n)
 		if (anguloGolpe > 0.0f && anguloGolpe < 15.0f && pelotaEnMovimiento) {
-			// La distancia de la pelota está alrededor del punto donde ocurriría el contacto
+			// La distancia de la pelota estÃ¡ alrededor del punto donde ocurrirÃ­a el contacto
 			float posX = posicionPelota.x - posicionInicial.x;
-			if (posX > 55.0f && posX < 65.0f) {  // Si la pelota está cerca de Jake
-				// Cambiar la dirección de la pelota (simular que fue golpeada)
+			if (posX > 55.0f && posX < 65.0f) {  // Si la pelota estÃ¡ cerca de Jake
+				// Cambiar la direcciÃ³n de la pelota (simular que fue golpeada)
 				velocidadPelota *= 0.5f; // Acelerar la pelota
-				// Invertir dirección (la pelota vuelve en dirección opuesta)
+				// Invertir direcciÃ³n (la pelota vuelve en direcciÃ³n opuesta)
 				distanciaPelota = 100.0f * 0.6f; // Reiniciar la distancia recorrida
 			}
 		}
 	}
 	else if (regresandoBat) {
-		// Regresar lentamente a la posición neutral
+		// Regresar lentamente a la posiciÃ³n neutral
 		anguloGolpe -= velocidadGolpe * 0.3f * deltaTime;
 		if (anguloGolpe <= 0.0f) {
 			anguloGolpe = 0.0f;
@@ -614,16 +658,16 @@ void actualizarAnimacionBateo(GLfloat deltaTime) {
 
 //GOLPEA AL TOPO--------------------------------------------------------------
 
-// Función para inicializar los estados de las medusas
+// FunciÃ³n para inicializar los estados de las medusas
 void inicializarMedusas() {
-	// Inicializar semilla para números aleatorios
+	// Inicializar semilla para nÃºmeros aleatorios
 	srand(static_cast<unsigned int>(time(nullptr)));
 
-	// Configuración inicial para todas las medusas
+	// ConfiguraciÃ³n inicial para todas las medusas
 	for (int i = 0; i < 5; i++) {
 		estadoMedusas[i].visible = false;
-		estadoMedusas[i].alturaInicial = 3.3f;    // Altura cuando está oculta
-		estadoMedusas[i].alturaMaxima = 10.0f;     // Altura cuando está visible
+		estadoMedusas[i].alturaInicial = 3.3f;    // Altura cuando estÃ¡ oculta
+		estadoMedusas[i].alturaMaxima = 10.0f;     // Altura cuando estÃ¡ visible
 		estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
 		estadoMedusas[i].velocidad = 0.1f + (rand() % 10) / 300.0f;  // Velocidad aleatoria
 		estadoMedusas[i].tiempoVisible = 6.0f + (rand() % 20) / 10.0f;  // Tiempo visible aleatorio
@@ -633,7 +677,7 @@ void inicializarMedusas() {
 	}
 }
 
-// Función para actualizar la lógica de animación de las medusas
+// FunciÃ³n para actualizar la lÃ³gica de animaciÃ³n de las medusas
 void actualizarMedusas(float deltaTime) {
 	// Actualizar el contador del ciclo
 	tiempoActualCiclo += deltaTime;
@@ -641,11 +685,11 @@ void actualizarMedusas(float deltaTime) {
 		tiempoActualCiclo = 0.0f;
 	}
 
-	// Fase del ciclo para determinar qué medusas aparecen
+	// Fase del ciclo para determinar quÃ© medusas aparecen
 	float faseCiclo = tiempoActualCiclo / cicloAparicion;
 
 	for (int i = 0; i < 5; i++) {
-		// Momento específico para que aparezca cada medusa 
+		// Momento especÃ­fico para que aparezca cada medusa 
 		float momentoAparicion = (float)i / 5.0f;
 		float margenAparicion = tiempoEntreApariciones / cicloAparicion;
 
@@ -656,14 +700,14 @@ void actualizarMedusas(float deltaTime) {
 		}
 
 		if (estadoMedusas[i].visible) {
-			// Si la medusa está visible, actualizar su tiempo
+			// Si la medusa estÃ¡ visible, actualizar su tiempo
 			estadoMedusas[i].tiempoActual += deltaTime;
 
-			// Si ya pasó su tiempo visible, comenzar a ocultarla
+			// Si ya pasÃ³ su tiempo visible, comenzar a ocultarla
 			if (estadoMedusas[i].tiempoActual >= estadoMedusas[i].tiempoVisible) {
 				estadoMedusas[i].altura -= estadoMedusas[i].velocidad * deltaTime;
 
-				// Si llegó a su posición inicial, marcarla como no visible
+				// Si llegÃ³ a su posiciÃ³n inicial, marcarla como no visible
 				if (estadoMedusas[i].altura <= estadoMedusas[i].alturaInicial) {
 					estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
 					estadoMedusas[i].visible = false;
@@ -671,7 +715,7 @@ void actualizarMedusas(float deltaTime) {
 				}
 			}
 			else {
-				// Si todavía está en tiempo visible, asegurarse de que esté en su altura máxima
+				// Si todavÃ­a estÃ¡ en tiempo visible, asegurarse de que estÃ© en su altura mÃ¡xima
 				if (estadoMedusas[i].altura < estadoMedusas[i].alturaMaxima) {
 					estadoMedusas[i].altura += estadoMedusas[i].velocidad * deltaTime;
 					if (estadoMedusas[i].altura > estadoMedusas[i].alturaMaxima) {
@@ -681,7 +725,7 @@ void actualizarMedusas(float deltaTime) {
 			}
 		}
 		else if (debeAparecer) {
-			// Si la medusa debe aparecer según el ciclo
+			// Si la medusa debe aparecer segÃºn el ciclo
 			estadoMedusas[i].visible = true;
 			estadoMedusas[i].tiempoActual = 0.0f;
 
@@ -691,31 +735,31 @@ void actualizarMedusas(float deltaTime) {
 		}
 	}
 
-	// Añadir aleatorización ocasional - medusa extra aleatoria cada cierto tiempo
+	// AÃ±adir aleatorizaciÃ³n ocasional - medusa extra aleatoria cada cierto tiempo
 	if (rand() % 100 < 2) {
 		int medusaAleatoria = rand() % 5;
 		if (!estadoMedusas[medusaAleatoria].visible) {
 			estadoMedusas[medusaAleatoria].visible = true;
 			estadoMedusas[medusaAleatoria].tiempoActual = 0.0f;
-			estadoMedusas[medusaAleatoria].velocidad = 0.15f + (rand() % 10) / 100.0f; // Más rápida
+			estadoMedusas[medusaAleatoria].velocidad = 0.15f + (rand() % 10) / 100.0f; // MÃ¡s rÃ¡pida
 			estadoMedusas[medusaAleatoria].tiempoVisible = 5.0f + (rand() % 10) / 20.0f; // Menos tiempo visible
 		}
 	}
 }
 
-// Función para actualizar la animación del martillo
+// FunciÃ³n para actualizar la animaciÃ³n del martillo
 void actualizarMartillo(float deltaTime) {
 	// Actualizar el contador de tiempo
 	tiempoActualMartillo += deltaTime;
 
-	// Si no está en movimiento y ha pasado el tiempo necesario, iniciar un nuevo golpe
+	// Si no estÃ¡ en movimiento y ha pasado el tiempo necesario, iniciar un nuevo golpe
 	if (!martilloEnMovimiento && tiempoActualMartillo >= tiempoEntreGolpes) {
 		martilloEnMovimiento = true;
 		martilloSubiendo = true;
 		tiempoActualMartillo = 0.0f;
 	}
 
-	// Animar el martillo si está en movimiento
+	// Animar el martillo si estÃ¡ en movimiento
 	if (martilloEnMovimiento) {
 		if (martilloSubiendo) {
 			anguloMartillo += velocidadMartillo * deltaTime;
@@ -742,25 +786,25 @@ void actualizarAnimaciones(float deltaTime) {
 
 
 // LANZAMIENTO DE HACHA-------------------------------------------------------------------
-// Función para generar un número aleatorio en un rango
+// FunciÃ³n para generar un nÃºmero aleatorio en un rango
 float randomFloat(float min, float max) {
 	return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
 }
 
-// Función para actualizar la animación del hacha
+// FunciÃ³n para actualizar la animaciÃ³n del hacha
 void actualizarAnimacionHacha(float deltaTime) {
-	// Rotación constante del hacha mientras está en vuelo
+	// RotaciÃ³n constante del hacha mientras estÃ¡ en vuelo
 	if (hachaLanzada && !hachaEnPared) {
 		anguloHacha += velocidadHacha * deltaTime;
 		if (anguloHacha >= 360.0f) {
 			anguloHacha -= 360.0f;
 		}
 	}
-	// Si el hacha no está lanzada ni en la pared
+	// Si el hacha no estÃ¡ lanzada ni en la pared
 	if (!hachaLanzada && !hachaEnPared) {
-		// Fase de preparación del lanzamiento
+		// Fase de preparaciÃ³n del lanzamiento
 		if (preparandoLanzamiento) {
-			// Movimiento del brazo hacia atrás
+			// Movimiento del brazo hacia atrÃ¡s
 			anguloBrazo -= velocidadBrazo * deltaTime;
 			if (anguloBrazo <= anguloMaxBrazo) {
 				anguloBrazo = anguloMaxBrazo;
@@ -774,37 +818,99 @@ void actualizarAnimacionHacha(float deltaTime) {
 				anguloBrazo = 80.0f;
 				hachaLanzada = true;
 				// Al iniciar el lanzamiento, decidimos el punto de destino aleatorio
-				posHachaX = randomFloat(-200.0f, -180.0f); // Variación en X
-				posHachaY = randomFloat(4.0f, 8.0f);       // Variación en Y
+				posHachaX = randomFloat(-200.0f, -180.0f); // VariaciÃ³n en X
+				posHachaY = randomFloat(4.0f, 8.0f);       // VariaciÃ³n en Y
 			}
 		}
 	}
-	// Si el hacha está en vuelo
+	// Si el hacha estÃ¡ en vuelo
 	else if (hachaLanzada && !hachaEnPared) {
 		// Movimiento del hacha hacia la pared
 		posHachaZ += lanzamientoVel * deltaTime;
 		// Si el hacha llega a la pared
 		if (posHachaZ >= 468.0f) {
 			posHachaZ = 468.0f;
-			hachaEnPared = true;  // El hacha ahora está clavada en la pared
+			hachaEnPared = true;  // El hacha ahora estÃ¡ clavada en la pared
 			tiempoEnPared = 0.0f; // Iniciamos el contador de tiempo
 		}
 	}
-	// Si el hacha está clavada en la pared
+	// Si el hacha estÃ¡ clavada en la pared
 	else if (hachaEnPared) {
 		// Contamos el tiempo que el hacha permanece en la pared
 		tiempoEnPared += deltaTime;
-		// Si se cumple el tiempo máximo en la pared
+		// Si se cumple el tiempo mÃ¡ximo en la pared
 		if (tiempoEnPared >= tiempoEnParedMax) {
 			// Reseteamos los estados para que el hacha reaparezca en la mano
 			hachaLanzada = false;
 			hachaEnPared = false;
 			preparandoLanzamiento = true;
-			anguloBrazo = 0.0f;  // Reset del ángulo del brazo
+			anguloBrazo = 0.0f;  // Reset del Ã¡ngulo del brazo
 			posHachaZ = posicionHachaInicialZ; // Reposicionar el hacha directamente
 		}
 	}
 }
+
+
+//LANZAMIENTO DE DARDO-------------------------------------------------------------------
+// FunciÃ³n para actualizar animaciÃ³n de dardos 
+void actualizarAnimacionDardo(float deltaTime) {
+	if (dardoLanzada && !dardoEnPared) {
+		angulodardo += velocidadDardo * deltaTime;
+		if (angulodardo >= 360.0f) {
+			angulodardo -= 360.0f;
+		}
+	}
+
+	if (!dardoLanzada && !dardoEnPared) {
+		// Fase de preparaciÃ³n del lanzamiento
+		if (preparandoLanzamiento) {
+			// Movimiento del brazo hacia atrÃ¡s
+			anguloBrazo -= velocidadBrazo * deltaTime;
+			if (anguloBrazo <= anguloMaxBrazo) {
+				anguloBrazo = anguloMaxBrazo;
+				preparandoLanzamiento = false;
+			}
+		}
+		else {
+			// Movimiento del brazo hacia adelante
+			anguloBrazo += velocidadBrazo * deltaTime;
+			if (anguloBrazo >= 80.0f) {
+				anguloBrazo = 80.0f;
+				dardoLanzada = true;
+				// Al iniciar el lanzamiento, decidimos el punto de destino aleatorio
+				posDardoX = randomFloat(-410.0f, -390.0f); // VariaciÃ³n en X
+				posDardoY = randomFloat(8.0f, 10.0f);       // VariaciÃ³n en Y
+			}
+		}
+	}
+	else if (dardoLanzada && !dardoEnPared) {
+		posDardoZ += lanzamientoVel * deltaTime;
+		// Si el hacha llega a la pared
+		if (posDardoZ >= 152.0f) {
+			posDardoZ = 152.0f;
+			dardoEnPared = true;  // El hacha ahora estÃ¡ clavada en la pared
+			tiempoEnPared = 0.0f; // Iniciamos el contador de tiempo
+		}
+	}
+	// Si el dardo estÃ¡ clavado en la pared
+	else if (dardoEnPared) {
+		// Contamos el tiempo que el dardo permanece en la pared
+		tiempoEnPared += deltaTime;
+		// Si se cumple el tiempo mÃ¡ximo en la pared
+		if (tiempoEnPared >= tiempoEnParedMax) {
+			// Reseteamos los estados para que el hacha reaparezca en la mano
+			dardoLanzada = false;
+			dardoEnPared = false;
+			preparandoLanzamiento = true;
+			anguloBrazo = 0.0f;  // Reset del Ã¡ngulo del brazo
+			posDardoZ = posicionDardoInicialZ; // Reposicionar el hacha directamente
+		}
+	}
+}
+
+
+
+
 
 void animarBobEsponja(float deltaTime) {
 	// Actualizar ciclo de salto
@@ -813,19 +919,19 @@ void animarBobEsponja(float deltaTime) {
 		saltoCiclo -= 360.0f;
 	}
 
-	// Calcular altura del salto usando una función seno
+	// Calcular altura del salto usando una funciÃ³n seno
 	saltoAltura = 1.0f * sin(glm::radians(saltoCiclo));
 
-	// Calcular ángulos de brazos y piernas para que se muevan al caminar
+	// Calcular Ã¡ngulos de brazos y piernas para que se muevan al caminar
 	brazoAngulo = 25.0f * sin(glm::radians(saltoCiclo));
 	piernaAngulo = 15.0f * sin(glm::radians(saltoCiclo));
 
-	// Manejar el movimiento adelante/atrás
+	// Manejar el movimiento adelante/atrÃ¡s
 	if (avanzando) {
 		posicionZ += movimientoVelocidad * deltaTime;
 		rotacionY = glm::pi<float>(); // 180 grados, mira hacia Z negativo (cuando avanza en Z positivo)
 
-		if (posicionZ >= -150.0f) { // Límite hacia adelante
+		if (posicionZ >= -150.0f) { // LÃ­mite hacia adelante
 			posicionZ = -150.0f;
 			avanzando = false;
 		}
@@ -834,7 +940,7 @@ void animarBobEsponja(float deltaTime) {
 		posicionZ -= movimientoVelocidad * deltaTime;
 		rotacionY = 0.0f; // 0 grados, mira hacia Z positivo (cuando retrocede en Z negativo)
 
-		if (posicionZ <= -350.0f) { // Límite hacia atrás
+		if (posicionZ <= -350.0f) { // LÃ­mite hacia atrÃ¡s
 			posicionZ = -350.0f;
 			avanzando = true;
 		}
@@ -936,6 +1042,12 @@ int main()
 
 	Dardo = Model();
 	Dardo.LoadModel("Models/Dardo.obj");
+
+	CasaMarceline = Model();
+	CasaMarceline.LoadModel("Models/CasaMarceline.obj");
+
+	FINN = Model();
+	FINN.LoadModel("Models/Finn.obj");
 
 
 
@@ -1070,15 +1182,15 @@ int main()
 	Material_opaco = Material(0.3f, 4);
 
 	//Materiales nuevos creados
-	Material Material_aluminio(3.0f, 512); 
+	Material Material_aluminio(3.0f, 512);
 	Material Material_madera(0.3f, 8);
-	Material Material_jake(0.6f, 32); 
+	Material Material_jake(0.6f, 32);
 
 
-	//luz direccional, sólo 1 y siempre debe de existir
+	//luz direccional, sÃ³lo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
 		1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f); //Iluminación del sol //Dirección inicial
+		0.0f, 1.0f, 0.0f); //IluminaciÃ³n del sol //DirecciÃ³n inicial
 
 
 	//contador de luces puntuales
@@ -1119,6 +1231,7 @@ int main()
 		actualizarAnimacionBateo(deltaTime);
 		actualizarAnimaciones(deltaTime);
 		actualizarAnimacionHacha(deltaTime);
+		actualizarAnimacionDardo(deltaTime);
 		animarBobEsponja(deltaTime);
 		actualizarAnimacionHarold(deltaTime);
 
@@ -1136,10 +1249,10 @@ int main()
 			//linterna
 			spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
 				0.0f, 2.0f,
-				0.0f, 0.0f, 0.0f,
+				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
 				0.0f, -1.0f, 0.0f,
 				1.0f, 0.0f, 0.0f,
-				5.0f);
+				25.0f);
 			spotLightCount++;//Encender lampara
 		}
 		else if (mainWindow.getLantern() == 0)
@@ -1147,37 +1260,28 @@ int main()
 			//linterna
 			spotLights[0] = SpotLight(0.0f, 0.0f, 0.0f,
 				0.0f, 2.0f,
-				0.0f, 0.0f, 0.0f,
+				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
 				0.0f, -1.0f, 0.0f,
 				1.0f, 0.0f, 0.0f,
-				5.0f);
+				25.0f);
 			spotLightCount--; //Apagar lampara
 		}
 
 
-
-		// luz ligada a la cámara de tipo flash
-		//sirve para que en tiempo de ejecución (dentro del while) se cambien propiedades de la luz
-
-
-		glm::vec3 lowerLight = camera.getCameraPosition();
-		lowerLight.y -= 0.3f;
-		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection()); //Luz se mueva respecto a la camara
-
-		//información al shader de fuentes de iluminación
+		//informaciÃ³n al shader de fuentes de iluminaciÃ³n
 
 
 		//Camara aerea
 		if (mainWindow.getCamaraAerea() == 1 && !respaldoHecho) {
 			mainWindow.getCamaraPersona() == 0;
 
-			// Respaldar la posición y ángulos actuales de la cámara
+			// Respaldar la posiciÃ³n y Ã¡ngulos actuales de la cÃ¡mara
 			camPositionBackup = camera.getCameraPosition();
 			yawBackup = camera.getYaw();
 			pitchBackup = camera.getPitch();
 			respaldoHecho = true;
 
-			// Cambiar posición a la aérea
+			// Cambiar posiciÃ³n a la aÃ©rea
 			camera.setCameraPosition(glm::vec3(0.0f, 950.0f, 0.0f));
 			camera.setYaw(-90.0f);
 			camera.setPitch(-89.0f);
@@ -1195,30 +1299,53 @@ int main()
 		}
 
 
-
-
-
-
-
-
-
-
-
-
-		//Actualizar ángulo del sol
+		//Actualizar Ã¡ngulo del sol
 		sunAngle += sunSpeed * deltaTime;
 		if (sunAngle > 360.0f)
 			sunAngle -= 360.0f;
 		float radians = glm::radians(sunAngle); //Convertir a radianes
-		glm::vec3 direction = glm::vec3(0.0f, sin(radians), -cos(radians)); //Calcular dirección	
+		glm::vec3 direction = glm::vec3(0.0f, sin(radians), -cos(radians)); //Calcular direcciÃ³n	
 		pointLightCount = 0; //Reiniciar contador de luces puntuales
 
-		//Cambio para que la transición sea más suave
-		//Función dinamica de actualización encendido de luces
+		//Cambio para que la transiciÃ³n sea mÃ¡s suave
+		//FunciÃ³n dinamica de actualizaciÃ³n encendido de luces
 
 
 		if (direction.y > 0.2f) {
 			skyboxDay.DrawSkybox(camera.calculateViewMatrix(), projection);
+
+			spotLights[1] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				-48.0f, 8.0f, -48.0f,
+				0.5f, -1.0f, 0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[2] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				48.0f, 8.0f, -48.0f,
+				-0.5f, -1.0f, 0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[3] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				-48.0f, 8.0f, 48.0f,
+				0.5f, -1.0f, -0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
+			spotLights[4] = SpotLight(0.0f, 0.0f, 0.0f,
+				1.0f, 1.5f,
+				48.0f, 8.0f, 48.0f,
+				-0.5f, -1.0f, -0.5f,
+				1.0f, 0.0f, 0.0f,
+				50.0f);
+			spotLightCount--;
+
 		}
 		else if (direction.y <= 0.2f) {
 			skyboxNight.DrawSkybox(camera.calculateViewMatrix(), projection);
@@ -1305,31 +1432,7 @@ int main()
 			}
 
 
-			//Luces de las varitas
-			struct VaritaLight {
-				glm::vec3 position;
-			};
 
-			std::vector<VaritaLight> varitas = {
-				{{320.0f, 55.f, 0.0f}},
-				{{300.0f, 55.f, 499.0f}},
-				{{-320.0f, 55.f, 0.0f}},
-				{{-300.0f, 55.f, 499.0f}},
-				{{0.0f,   55.f, 320.0f}},
-				{{300.0f, 55.f, -320.0f}},
-				{{-300.0f,55.f, -320.0f}},
-				{{0.0f,   55.f, -499.0f}}
-			};
-
-			for (int i = 0; i < varitas.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
-				if (glm::distance(camPos, varitas[i].position) < 100.0f) {
-					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
-						2.0f, 3.0f,
-						varitas[i].position.x, varitas[i].position.y, varitas[i].position.z,
-						0.3f, 0.05f, 0.01f);
-					pointLightCount++;
-				}
-			}
 
 			if (mainWindow.getJuego() == 1) {
 				//Iluminaciones para atracciones
@@ -1357,6 +1460,38 @@ int main()
 		}
 
 
+		//Luces activadas por boton varitas (deseos)
+
+		if (mainWindow.getDeseo() == 1) {
+			//Luces de las varitas
+			struct VaritaLight {
+				glm::vec3 position;
+			};
+
+			std::vector<VaritaLight> varitas = {
+				{{320.0f, 55.f, 0.0f}},
+				{{300.0f, 55.f, 499.0f}},
+				{{-320.0f, 55.f, 0.0f}},
+				{{-300.0f, 55.f, 499.0f}},
+				{{0.0f,   55.f, 320.0f}},
+				{{300.0f, 55.f, -320.0f}},
+				{{-300.0f,55.f, -320.0f}},
+				{{0.0f,   55.f, -499.0f}}
+			};
+
+			for (int i = 0; i < varitas.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+				if (glm::distance(camPos, varitas[i].position) < 100.0f) {
+					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+						2.0f, 3.0f,
+						varitas[i].position.x, varitas[i].position.y, varitas[i].position.z,
+						0.3f, 0.05f, 0.01f);
+					pointLightCount++;
+				}
+			}
+		}
+
+
+
 
 		shaderList[0].UseShader();
 		uniformModel = shaderList[0].GetModelLocation();
@@ -1365,7 +1500,7 @@ int main()
 		uniformEyePosition = shaderList[0].GetEyePositionLocation();
 		uniformColor = shaderList[0].getColorLocation();
 
-		//información en el shader de intensidad especular y brillo
+		//informaciÃ³n en el shader de intensidad especular y brillo
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 		uniformShininess = shaderList[0].GetShininessLocation();
 
@@ -1374,17 +1509,17 @@ int main()
 		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
 
-		//Nueva implemantación cambio de luz de día a noche con interpolación
+		//Nueva implemantaciÃ³n cambio de luz de dÃ­a a noche con interpolaciÃ³n
 
-		mainLight.SetDirection(direction); //Actualizar dirección de la luz direccional
+		mainLight.SetDirection(direction); //Actualizar direcciÃ³n de la luz direccional
 
 		float intensidadMin = 0.5f;
 		float intensidadMax = 1.0f;
 
-		// Clamp la dirección Y para que siempre esté entre 0 y 1
+		// Clamp la direcciÃ³n Y para que siempre estÃ© entre 0 y 1
 		float t = glm::clamp(direction.y, 0.0f, 1.0f);
 
-		// Interpolación de luz según la posición del sol
+		// InterpolaciÃ³n de luz segÃºn la posiciÃ³n del sol
 		float ambient = glm::mix(intensidadMin, intensidadMax, t);
 		float diffuse = glm::mix(intensidadMin, intensidadMax, t);
 
@@ -1519,7 +1654,7 @@ int main()
 
 
 		//Colocar modelos hora de aventura
-		//Para animación backflip BMO
+		//Para animaciÃ³n backflip BMO
 		static bool animacionIniciada = false;
 		static bool animacionTerminada = false;
 		static bool camaraEstabaLejos = true;
@@ -1533,7 +1668,7 @@ int main()
 		if (glm::distance(camPos, glm::vec3(-300.0f, 0.0f, 400.0f)) <= 30.0f && camaraEstabaLejos) {
 			animacionIniciada = false;
 			animacionTerminada = false;
-			camaraEstabaLejos = false; // Ya no está lejos
+			camaraEstabaLejos = false; // Ya no estÃ¡ lejos
 		}
 
 		if (glm::distance(camPos, glm::vec3(-300.0f, 0.0f, 400.0f)) > 50.0f) {
@@ -1564,7 +1699,7 @@ int main()
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-300.0f, altura, 400.0f));
 		model = glm::rotate(model, 2.5f, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, anguloBackflip, glm::vec3(1.0f, 0.0f, 0.0f)); // Rotación para el backflip
+		model = glm::rotate(model, anguloBackflip, glm::vec3(1.0f, 0.0f, 0.0f)); // RotaciÃ³n para el backflip
 		model = glm::scale(model, glm::vec3(60.0f, 60.0f, 60.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		BMO.RenderModel();
@@ -1578,11 +1713,11 @@ int main()
 		CasaDelArbol.RenderModel();
 
 		if (mainWindow.getCamaraPersona() == 1 && mainWindow.getCamaraAerea() == 0 && mainWindow.getJuego() == 0) {
-			//PARA LA ANIMACIÓN DE JAKE
+			//PARA LA ANIMACIÃ“N DE JAKE
 			mainWindow.actualizarAnimacionJake(camera.getYaw());
 
 
-			// Ajusta la cámara para seguir a Jake desde atrás
+			// Ajusta la cÃ¡mara para seguir a Jake desde atrÃ¡s
 			float jakeX = mainWindow.getPosX();
 			float jakeZ = mainWindow.getPosZ();
 			float jakeYaw = mainWindow.getDireccion();
@@ -1693,7 +1828,7 @@ int main()
 		Prismo.RenderModel();
 
 
-		//AQUÍ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
+		//AQUÃ DEBEN DE PONER LAS UBICACIONES DE DONDE VAN A QUERER LOS RECIBIDORES DE MONEDAS (SOLO EDITEN X y Z)
 		//Recibidor de monedas
 		RenderRecibidorMonedas(glm::vec3(-220.0f, -0.9f, 419.0f), 0.0f, uniformModel); //Tirar hacha 
 		RenderRecibidorMonedas(glm::vec3(-390.0f, -0.9f, 180.0f), 0.5f, uniformModel); //Juego de dardos
@@ -1709,13 +1844,26 @@ int main()
 
 
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-400.0f, 10.0f, 155.0));
-		model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		model = glm::translate(model, glm::vec3(-150.0f, 0.0f, 150.0));
+		model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
+		model = glm::rotate(model, 3.14f, glm::vec3(0.0f, 1.0f, 0.0f));
+		Material_madera.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Dardo.RenderModel();
+		CasaMarceline.RenderModel();
 
 
 
+		//FINN
+
+		anguloGiroFinn += deltaTime * 20.0f; // Ajusta la velocidad
+		if (anguloGiroFinn > 360.0f) anguloGiroFinn -= 360.0f;
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-300.0f, -1.0f, 150.0f));
+		model = glm::rotate(model, glm::radians(anguloGiroFinn), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f));
+		Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		FINN.RenderModel();
 
 
 
@@ -1728,7 +1876,7 @@ int main()
 		//BOB ESPONJA
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, 8.8f + saltoAltura, posicionZ));
-		model = glm::rotate(model, rotacionY, glm::vec3(0.0f, 1.0f, 0.0f)); // Aplicar rotación según dirección
+		model = glm::rotate(model, rotacionY, glm::vec3(0.0f, 1.0f, 0.0f)); // Aplicar rotaciÃ³n segÃºn direcciÃ³n
 		model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 		modelaux = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
@@ -1832,7 +1980,7 @@ int main()
 
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(haroldPosX, 10.3f, -345.0f));
-		model = glm::rotate(model, haroldMovingForward ? 0.0f : glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotación según dirección
+		model = glm::rotate(model, haroldMovingForward ? 0.0f : glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)); // RotaciÃ³n segÃºn direcciÃ³n
 		model = glm::scale(model, glm::vec3(1.6f, 1.6f, 1.6f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		HaroldN.RenderModel();
@@ -1882,9 +2030,9 @@ int main()
 				monedaAnimando = true;
 			}
 
-			// Si se está animando, baja y gira
+			// Si se estÃ¡ animando, baja y gira
 			if (monedaAnimando) {
-				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caÃ­da
 				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
 
 				if (alturaMoneda <= 0.0f) {
@@ -1902,7 +2050,7 @@ int main()
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			Coin.RenderModel();
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+			//AQUÃ COLOCAR TODO LO DE LA ANIMACIÃ“N DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 
 			//Jake el perro 
@@ -1917,7 +2065,7 @@ int main()
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
 			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
-			// Rotación para la animación del lanzamiento
+			// RotaciÃ³n para la animaciÃ³n del lanzamiento
 			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -1936,16 +2084,16 @@ int main()
 				// Hacha en vuelo o clavada en la pared
 				model = glm::mat4(1.0);
 
-				// Si está en vuelo, la posición irá cambiando pero alineada con el lanzamiento
+				// Si estÃ¡ en vuelo, la posiciÃ³n irÃ¡ cambiando pero alineada con el lanzamiento
 				if (hachaLanzada && !hachaEnPared) {
-					// Durante el vuelo, mantenemos la dirección pero con la posición Z cambiante
+					// Durante el vuelo, mantenemos la direcciÃ³n pero con la posiciÃ³n Z cambiante
 					model = glm::translate(model, glm::vec3(-190.0f, 3.7f + 2.0f, posHachaZ));
 					model = glm::rotate(model, glm::radians(anguloHacha), glm::vec3(0.0f, 0.0f, 1.0f));
 				}
-				// Si está clavada en la pared, usamos la posición X e Y aleatorias generadas
+				// Si estÃ¡ clavada en la pared, usamos la posiciÃ³n X e Y aleatorias generadas
 				else if (hachaEnPared) {
 					model = glm::translate(model, glm::vec3(posHachaX, posHachaY, posHachaZ));
-					// Usamos el ángulo fijo predeterminado al inicio del lanzamiento
+					// Usamos el Ã¡ngulo fijo predeterminado al inicio del lanzamiento
 					model = glm::rotate(model, glm::radians(anguloHachaFijo), glm::vec3(0.0f, 0.0f, 1.0f));
 				}
 
@@ -2005,7 +2153,7 @@ int main()
 			yawBackup = camera.getYaw();
 			pitchBackup = camera.getPitch();
 
-			// Posición fija de la cámara de juego (ej. aérea)
+			// PosiciÃ³n fija de la cÃ¡mara de juego (ej. aÃ©rea)
 			camera.setCameraPosition(glm::vec3(-200.0f, 30.0f, 380.0f));
 			camera.setYaw(-270.0f);//Giro en x
 			camera.setPitch(-30.0f);//Giro en z
@@ -2021,6 +2169,24 @@ int main()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		//Para activar el juego de dardos
 		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
 			mainWindow.getCamaraPersona() == 0;
@@ -2029,9 +2195,9 @@ int main()
 				monedaAnimando = true;
 			}
 
-			// Si se está animando, baja y gira
+			// Si se estÃ¡ animando, baja y gira
 			if (monedaAnimando) {
-				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caÃ­da
 				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
 
 				if (alturaMoneda <= 0.0f) {
@@ -2050,12 +2216,120 @@ int main()
 			Coin.RenderModel();
 
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL DARDO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(-400.0f, 3.7f, 200.0f));
+			model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Ahora mira hacia -Z
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			// Brazo derecho lanzando
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(anguloBrazo), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, 3.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			// Dardo en la mano
+			if (!dardoLanzada && !dardoEnPared) {
+				model = glm::translate(model, glm::vec3(-1.2f, 0.0f, 0.2f));
+				model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::scale(model, glm::vec3(3.0f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Dardo.RenderModel();
+			}
+			// Dardo lanzado o clavado
+			else {
+				model = glm::mat4(1.0);
+
+				if (dardoLanzada && !dardoEnPared) {
+					model = glm::translate(model, glm::vec3(-400.0f, 5.7f, posDardoZ)); // eje Z NEGATIVO
+					model = glm::rotate(model, glm::radians(angulodardo), glm::vec3(0.0f, 0.0f, 1.0f)); // giro sobre eje Z
+				}
+				else if (dardoEnPared) {
+					model = glm::translate(model, glm::vec3(posDardoX, posDardoY, posDardoZ));
+					model = glm::rotate(model, glm::radians(anguloDardoFijo), glm::vec3(0.0f, 0.0f, 1.0f));
+				}
+
+				model = glm::scale(model, glm::vec3(20.0f));
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+				Dardo.RenderModel();
+			}
+
+			// Brazo izquierdo
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(1.05f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			// Pierna derecha
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			// Pierna izquierda
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+			//AQUÃ COLOCAR TODO LO DE LA ANIMACIoN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
 
 		}
 		else {
 			mainWindow.getCamaraPersona() == 1;
 		}
+
+
+		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(-400.0f, 30.0f, 220.0f));
+			camera.setYaw(-90.0f);//Giro en x
+			camera.setPitch(-30.0f);//Giro en z
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 		//Para activar el bateo
@@ -2065,9 +2339,9 @@ int main()
 				monedaAnimando = true;
 			}
 
-			// Si se está animando, baja y gira
+			// Si se estÃ¡ animando, baja y gira
 			if (monedaAnimando) {
-				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caÃ­da
 				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
 
 				if (alturaMoneda <= 0.0f) {
@@ -2087,7 +2361,7 @@ int main()
 
 
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL BATEO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+			//AQUÃ COLOCAR TODO LO DE LA ANIMACIÃ“N DEL BATEO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 
 			if (pelotaEnMovimiento) {
@@ -2098,7 +2372,7 @@ int main()
 				Pelota.RenderModel();
 			}
 			else {
-				// Si la pelota no está en movimiento, mostrarla en la máquina lanzadora
+				// Si la pelota no estÃ¡ en movimiento, mostrarla en la mÃ¡quina lanzadora
 				model = modelaux;
 				model = glm::translate(model, glm::vec3(-23.0f, -0.3f, -1.5));
 				model = glm::scale(model, glm::vec3(3.3f, 3.3f, 3.3f));
@@ -2125,7 +2399,7 @@ int main()
 
 			model = modelJake;
 			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
-			// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
+			// Aplicar rotaciÃ³n para el golpe en el brazo izquierdo - cambiado a rotaciÃ³n en Y para movimiento horizontal
 			model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
 			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
@@ -2161,7 +2435,7 @@ int main()
 			yawBackup = camera.getYaw();
 			pitchBackup = camera.getPitch();
 
-			// Posición fija de la cámara de juego (ej. aérea)
+			// PosiciÃ³n fija de la cÃ¡mara de juego (ej. aÃ©rea)
 			camera.setCameraPosition(glm::vec3(85.0f, 30.0f, -420.0f));
 			camera.setYaw(-180.0f);
 			camera.setPitch(-30.0f);
@@ -2187,9 +2461,9 @@ int main()
 				monedaAnimando = true;
 			}
 
-			// Si se está animando, baja y gira
+			// Si se estÃ¡ animando, baja y gira
 			if (monedaAnimando) {
-				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caÃ­da
 				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
 
 				if (alturaMoneda <= 0.0f) {
@@ -2208,7 +2482,7 @@ int main()
 			Coin.RenderModel();
 
 
-			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DEL TOPO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+			//AQUÃ COLOCAR TODO LO DE LA ANIMACIÃ“N DEL TOPO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 			//TOPO
 			model = glm::mat4(1.0);
@@ -2227,11 +2501,11 @@ int main()
 				glm::vec3(0.8f, 0.0f, -1.1f)    // Medusa 5
 			};
 
-			// Renderiza cada medusa con su animación correspondiente
+			// Renderiza cada medusa con su animaciÃ³n correspondiente
 			for (int i = 0; i < 5; i++) {
 				if (estadoMedusas[i].visible) {
 					model = modelaux;
-					// Aplica la altura animada a la posición Y
+					// Aplica la altura animada a la posiciÃ³n Y
 					model = glm::translate(model, glm::vec3(
 						posicionesMedusas[i].x,
 						estadoMedusas[i].altura,  // Altura animada
@@ -2245,14 +2519,14 @@ int main()
 
 						model = glm::scale(model, glm::vec3(0.4f, 0.4f * factorAplastamiento, 0.4f));
 
-						// Si está golpeada, también le damos un efecto de ensanchamiento lateral
+						// Si estÃ¡ golpeada, tambiÃ©n le damos un efecto de ensanchamiento lateral
 						model = glm::scale(model, glm::vec3(1.0f + (1.0f - factorAplastamiento), 1.0f, 1.0f + (1.0f - factorAplastamiento)));
 					}
 					else {
 						model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 					}
 
-					// Agrega un pequeño balanceo para más realismo cuando está visible
+					// Agrega un pequeÃ±o balanceo para mÃ¡s realismo cuando estÃ¡ visible
 					if (!estadoMedusas[i].golpeada && estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
 						float balanceo = sin(glfwGetTime() * 2.0f + i * 1.5f) * 0.1f;
 						model = glm::rotate(model, balanceo, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -2277,7 +2551,7 @@ int main()
 			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(0.0f, 0.0f, 1.0f));
 			model = glm::rotate(model, -1.57f, glm::vec3(1.0f, 0.0f, 0.0f));
-			// Aquí aplicamos la rotación del martillo
+			// AquÃ­ aplicamos la rotaciÃ³n del martillo
 			model = glm::rotate(model, glm::radians(anguloMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
 			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
@@ -2309,27 +2583,27 @@ int main()
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
-			// Sistema de colisiones básico para detectar si golpeamos una medusa
+			// Sistema de colisiones bÃ¡sico para detectar si golpeamos una medusa
 			if (martilloEnMovimiento && !martilloSubiendo) {
-				// Calculamos la posición del martillo basada en el ángulo actual
+				// Calculamos la posiciÃ³n del martillo basada en el Ã¡ngulo actual
 				float anguloRad = glm::radians(anguloMartillo);
 
-				// Posición aproximada del martillo en el mundo (calculada con la rotación)
+				// PosiciÃ³n aproximada del martillo en el mundo (calculada con la rotaciÃ³n)
 				glm::vec3 posMartillo = glm::vec3(
-					-120.0f - 3.0f + sin(anguloRad) * 2.0f,  // Ajuste en X según rotación
-					3.7f + 2.0f - cos(anguloRad) * 2.0f,     // Ajuste en Y según rotación
+					-120.0f - 3.0f + sin(anguloRad) * 2.0f,  // Ajuste en X segÃºn rotaciÃ³n
+					3.7f + 2.0f - cos(anguloRad) * 2.0f,     // Ajuste en Y segÃºn rotaciÃ³n
 					-210.0f
 				);
 
-				// Radio de colisión del martillo
+				// Radio de colisiÃ³n del martillo
 				float radioMartillo = 4.0f;
 
-				// Verificar colisión con cada medusa visible
+				// Verificar colisiÃ³n con cada medusa visible
 				for (int i = 0; i < 5; i++) {
 					if (estadoMedusas[i].visible && !estadoMedusas[i].golpeada &&
 						estadoMedusas[i].altura > estadoMedusas[i].alturaInicial + 1.0f) {
 
-						// Posición de la medusa en el mundo
+						// PosiciÃ³n de la medusa en el mundo
 						glm::vec3 posMedusa = glm::vec3(
 							-130.0f + posicionesMedusas[i].x * 2.3f,
 							estadoMedusas[i].altura * 2.3f,
@@ -2339,21 +2613,21 @@ int main()
 						// Distancia entre el martillo y la medusa
 						float distancia = glm::distance(posMartillo, posMedusa);
 
-						// Si hay colisión, marcar la medusa como golpeada
+						// Si hay colisiÃ³n, marcar la medusa como golpeada
 						if (distancia < radioMartillo) {
 							estadoMedusas[i].golpeada = true;
 							estadoMedusas[i].tiempoGolpeada = 0.0f;
-							// Aquí podrías agregar efectos de sonido o incrementar la puntuación
+							// AquÃ­ podrÃ­as agregar efectos de sonido o incrementar la puntuaciÃ³n
 						}
 					}
 
-					// Procesar medusas golpeadas (animación de "aplastamiento")
+					// Procesar medusas golpeadas (animaciÃ³n de "aplastamiento")
 					if (estadoMedusas[i].golpeada) {
 						estadoMedusas[i].tiempoGolpeada += deltaTime;
 
-						// Después de un tiempo, hacer que desaparezca
+						// DespuÃ©s de un tiempo, hacer que desaparezca
 						if (estadoMedusas[i].tiempoGolpeada > 0.3f) {
-							estadoMedusas[i].altura -= estadoMedusas[i].velocidad * 0.5f * deltaTime;  // Desaparece más rápido
+							estadoMedusas[i].altura -= estadoMedusas[i].velocidad * 0.5f * deltaTime;  // Desaparece mÃ¡s rÃ¡pido
 
 							if (estadoMedusas[i].altura <= estadoMedusas[i].alturaInicial) {
 								estadoMedusas[i].altura = estadoMedusas[i].alturaInicial;
@@ -2378,7 +2652,7 @@ int main()
 			yawBackup = camera.getYaw();
 			pitchBackup = camera.getPitch();
 
-			// Posición fija de la cámara de juego (ej. aérea)
+			// PosiciÃ³n fija de la cÃ¡mara de juego (ej. aÃ©rea)
 			camera.setCameraPosition(glm::vec3(-100, 30.0f, -210.0f));
 			camera.setYaw(-180.0f);//Giro en x
 			camera.setPitch(-30.0f);//Giro en z
