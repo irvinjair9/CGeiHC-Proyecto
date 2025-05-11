@@ -34,8 +34,11 @@ FMOD::Sound* soundHacha;
 FMOD::Sound* soundBateo;
 FMOD::Sound* soundTopo;
 FMOD::Sound* soundDardos;
+FMOD::Sound* soundBolos;
+FMOD::Sound* soundDados;
 FMOD::Channel* channel = nullptr;
 FMOD::Channel* channelAttraction = nullptr;
+
 
 
 //para iluminación
@@ -53,7 +56,7 @@ float angulovaria = 0.0f;
 
 float sunAngle = 0.0f;
 //float sunSpeed = 0.05f;
-float sunSpeed = 0.01f; //Velocidad de rotación del sol
+float sunSpeed = 0.05f; //Velocidad de rotación del sol
 
 
 // Variables para la animación de bateo
@@ -171,6 +174,16 @@ bool haroldMovingForward = true; // Dirección del movimiento
 
 
 
+//variables animacion bolos
+float movballOffset;
+float movBall;
+float rotball;
+float rotballOffset;
+float movHd;
+float movhdOffset;
+bool arrb;
+
+
 Window mainWindow;
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
@@ -252,6 +265,7 @@ Model Wanda;
 Model Timmy;
 Model CasaTimmy;
 Model Bolos;
+Model Ball;
 
 
 Skybox skyboxDay;
@@ -407,7 +421,7 @@ void CreateShaders()
 	shaderList.push_back(*shader1);
 }
 
-//Función para la musica con Fmod
+//Funci�n para la musica con Fmod
 void iniciarFMOD() {
 	FMOD::System_Create(&fmodSystem);
 	fmodSystem->init(512, FMOD_INIT_NORMAL, 0);
@@ -417,6 +431,7 @@ void iniciarFMOD() {
 	fmodSystem->createSound("sounds/beisbol.wav", FMOD_LOOP_NORMAL, 0, &soundBateo);
 	fmodSystem->createSound("sounds/topo.wav", FMOD_LOOP_NORMAL, 0, &soundTopo);
 	fmodSystem->createSound("sounds/dardos.wav", FMOD_LOOP_NORMAL, 0, &soundDardos);
+	fmodSystem->createSound("sounds/Bolos.wav", FMOD_LOOP_NORMAL, 0, &soundBolos);
 	fmodSystem->playSound(music, 0, false, &channel);
 }
 
@@ -430,6 +445,8 @@ void liberarFMOD() {
 	soundBateo->release();
 	soundTopo->release();
 	soundDardos->release();
+	soundBolos->release();
+	soundDados->release();
 	fmodSystem->close();
 	fmodSystem->release();
 }
@@ -453,6 +470,7 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 	glm::vec3 posBateo(15.0f, 0.0f, -395.0f);
 	glm::vec3 posTopo(-125.0f, 0.0f, -200.0f);
 	glm::vec3 posDardos(-390.0f, 0.0f, 182.0f);
+	glm::vec3 posBolos(50.0f, 10.0f, 300.0);
 
 	// Determinar si estamos viendo una atracción
 	int nuevaAtraccion = -1;
@@ -474,6 +492,14 @@ void manejarSonidosAtracciones(glm::vec3 camPos, glm::vec3 camDir) {
 		nuevaAtraccion = 3;
 		sonido = soundDardos;
 	}
+	else if (estaEnCampoVision(posBolos) && glm::distance(camPos, posBolos) < 200.0f) {
+		nuevaAtraccion = 4;
+		sonido = soundBolos;
+	}
+	//else if (estaEnCampoVision(posDados) && glm::distance(camPos, posDados) < 100.0f) {
+	//	nuevaAtraccion = 5;
+	//	sonido = soundDados;
+	//}
 
 	// Manejar cambios de atracción
 	if (nuevaAtraccion != atraccionActual) {
@@ -1131,7 +1157,11 @@ int main()
 	Timmy.LoadModel("Models/timmy.obj");
 
 	Bolos = Model();
-	Bolos.LoadModel("Models/bolos.obj");
+	Bolos.LoadModel("Models/bowling.obj");
+
+	Ball = Model();
+	Ball.LoadModel("Models/ball.obj");
+
 
 
 
@@ -1189,6 +1219,18 @@ int main()
 	martilloEnMovimiento = false;
 	martilloSubiendo = false;
 
+	//inicializar variables bolos
+	movBall = 50.0f;
+	rotball = 0.0f;
+	rotballOffset = 10.0f;
+	movballOffset = 0.3f;
+
+	//variables hadas animacion
+	movHd = 4.2f;
+	movhdOffset = 0.2f;
+	arrb = true;
+
+
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
@@ -1231,7 +1273,7 @@ int main()
 
 		if (mainWindow.getLantern() == 1)
 		{
-			//linterna
+			//luz divina
 			spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
 				0.0f, 2.0f,
 				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
@@ -1242,7 +1284,7 @@ int main()
 		}
 		else if (mainWindow.getLantern() == 0)
 		{
-			//linterna
+			//luz divina
 			spotLights[0] = SpotLight(0.0f, 0.0f, 0.0f,
 				0.0f, 2.0f,
 				mainWindow.getPosX(), 20.0f, mainWindow.getPosZ(),
@@ -1416,32 +1458,6 @@ int main()
 				spotLightCount--;
 			}
 
-
-
-
-			if (mainWindow.getJuego() == 1) {
-				//Iluminaciones para atracciones
-				struct LucesAtraccion {
-					glm::vec3 position;
-				};
-
-				std::vector<LucesAtraccion> atracciones = {
-					{{-200.0f, 40.0f, 450.0}}, //Prismo
-					{{-400.0f, 20.0f, 170.0}}, //Dardos
-					{{-130.0f, 40.0f, -210.0}}, //Topo
-					{{0.0f, 6.0f, -420.0}}, //Bate
-				};
-
-				for (int i = 0; i < atracciones.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
-					if (glm::distance(camPos, atracciones[i].position) < 100.0f) {
-						pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
-							2.0f, 3.0f,
-							atracciones[i].position.x, atracciones[i].position.y, atracciones[i].position.z,
-							0.3f, 0.05f, 0.01f);
-						pointLightCount++;
-					}
-				}
-			}
 		}
 
 
@@ -1474,6 +1490,34 @@ int main()
 				}
 			}
 		}
+
+
+		if (mainWindow.getJuego() == 1) {
+			//Iluminaciones para atracciones
+			struct LucesAtraccion {
+				glm::vec3 position;
+			};
+
+			std::vector<LucesAtraccion> atracciones = {
+				{{-200.0f, 40.0f, 450.0}}, //Prismo
+				{{-400.0f, 20.0f, 170.0}}, //Dardos
+				{{-130.0f, 40.0f, -210.0}}, //Topo
+				{{0.0f, 6.0f, -420.0}}, //Bate
+				{{100, 20, 300}}//Bolos
+			};
+
+			for (int i = 0; i < atracciones.size() && pointLightCount < MAX_POINT_LIGHTS; ++i) {
+				if (glm::distance(camPos, atracciones[i].position) < 100.0f) {
+					pointLights[pointLightCount] = PointLight(1.0f, 1.0f, 1.0f,
+						2.0f, 3.0f,
+						atracciones[i].position.x, atracciones[i].position.y, atracciones[i].position.z,
+						0.3f, 0.05f, 0.01f);
+					pointLightCount++;
+				}
+			}
+		}
+
+
 
 
 
@@ -1698,7 +1742,7 @@ int main()
 		CasaDelArbol.RenderModel();
 
 		if (mainWindow.getCamaraPersona() == 1 && mainWindow.getCamaraAerea() == 0 && mainWindow.getJuego() == 0) {
-			//PARA LA ANIMACIÓN DE JAKE
+			//PARA LA ANIMACION DE JAKE
 			mainWindow.actualizarAnimacionJake(camera.getYaw());
 
 
@@ -1819,6 +1863,8 @@ int main()
 		RenderRecibidorMonedas(glm::vec3(-390.0f, -0.9f, 180.0f), 0.5f, uniformModel); //Juego de dardos
 		RenderRecibidorMonedas(glm::vec3(15.0f, -0.9f, -395.0f), 1.0f, uniformModel); //Bateo
 		RenderRecibidorMonedas(glm::vec3(-125.0f, -0.9f, -200.0f), 2.0f, uniformModel); //Golpear al topo
+		RenderRecibidorMonedas(glm::vec3(100.0f, -0.9f, 230.0f), 0.0f, uniformModel); //Bolos
+		RenderRecibidorMonedas(glm::vec3(0.0f, -0.9f, -400.0f), 4.0f, uniformModel); //Dados
 
 
 		model = glm::mat4(1.0);
@@ -2154,24 +2200,6 @@ int main()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		//Para activar el juego de dardos
 		if (glm::distance(camPos, glm::vec3(-390.0f, alturaMoneda, 182.0f)) < 50.0f && mainWindow.getJuego() == 1) {
 			mainWindow.getCamaraPersona() == 0;
@@ -2295,25 +2323,6 @@ int main()
 			camera.setPitch(pitchBackup);
 			camaraJuegoActiva = false;
 		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2655,6 +2664,13 @@ int main()
 
 
 
+		
+
+		//Juego de dados
+
+
+
+
 
 
 
@@ -2685,9 +2701,23 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		CasaTimmy.RenderModel();
 
+		//animacion hadas
+
+		if (movHd < 13.0f)
+		{
+			movHd += movhdOffset * deltaTime;
+		}
+		else
+		{
+			movHd = 4.2f;
+		}
+
+
+
+
 		//Cosmo
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(300.0f, 10.2f, 240.0));
+		model = glm::translate(model, glm::vec3(300.0f, movBall, 240.0));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cosmo.RenderModel();
@@ -2705,14 +2735,135 @@ int main()
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Timmy.RenderModel();
-
+			
 		//Bolos
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(100.0f, 2.0f, 300.0));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(50.0f, 10.0f, 300.0));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		//model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+		modelaux = model;
+	
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Bolos.RenderModel();
+
+		//Para activar bolos
+		if (glm::distance(camPos, glm::vec3(50.0f, alturaMoneda, 180.0f)) < 100.0f && mainWindow.getJuego() == 1) {
+
+			if (!monedaAnimando && alturaMoneda == 3.0f) {
+				monedaAnimando = true;
+			}
+
+			// Si se está animando, baja y gira
+			if (monedaAnimando) {
+				alturaMoneda -= deltaTime * 0.01f; // Velocidad de caída
+				rotacionCoin += deltaTime * glm::radians(360.0f) * 0.001f; // Giro
+
+				if (alturaMoneda <= 0.0f) {
+					alturaMoneda = 3.0f;
+					rotacionCoin = 0.0f;
+					monedaAnimando = false;
+				}
+			}
+
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(50.0f, alturaMoneda, 180.0f));
+			model = glm::rotate(model, 1.5f, glm::vec3(0.0f, 1, 0.0f));
+			model = glm::rotate(model, rotacionCoin, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Coin.RenderModel();
+
+
+
+			//AQUÍ COLOCAR TODO LO DE LA ANIMACIÓN DE BOLOS, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
+
+			//animacion bolos
+			if (movBall > -50.0f)
+			{
+				movBall -= movballOffset * deltaTime;
+				//printf("avanza%f \n ",movCoche);
+				rotball += rotballOffset * deltaTime;
+			}
+			else
+			{
+				movBall = 70.0f;
+			}
+
+			//Ball
+			model = modelaux;
+			model = glm::translate(model, glm::vec3(movBall, -6.0f, 25.0f));
+			//model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, rotball * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+			//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			Ball.RenderModel();
+
+			//Jake el perro 
+			model = glm::mat4(1.0);
+			model = glm::translate(model, glm::vec3(70.0f, 3.7f, 180.0f));
+			//model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::scale(model, glm::vec3(3.0f));
+			modelJake = model;
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeCuerpo.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-1.0f, 2.0f, 0.0f));
+			model = glm::rotate(model, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.95f, 2.0f, 0.0f));
+			// Aplicar rotación para el golpe en el brazo izquierdo - cambiado a rotación en Y para movimiento horizontal
+			model = glm::rotate(model, glm::radians(anguloGolpe), glm::vec3(0.0f, 1.0f, 0.0f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakeBrazoIzq.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(-0.38f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaDer.RenderModel();
+
+			model = modelJake;
+			model = glm::translate(model, glm::vec3(0.51f, 0.2f, -0.03f));
+			Material_jake.UseMaterial(uniformSpecularIntensity, uniformShininess);
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			JakePiernaIzq.RenderModel();
+
+
+
+		}
+		else {
+			mainWindow.getCamaraPersona() == 1;
+		}
+		if (glm::distance(camPos, glm::vec3(50.0f, alturaMoneda, 180.0f)) < 100.0f && mainWindow.getJuego() == 1 && !camaraJuegoActiva) {
+			//Camara de juego
+			camPositionBackup = camera.getCameraPosition();
+			yawBackup = camera.getYaw();
+			pitchBackup = camera.getPitch();
+
+			// Posición fija de la cámara de juego (ej. aérea)
+			camera.setCameraPosition(glm::vec3(80.0f, 60.0f, 120.0f));
+			camera.setYaw(-270.0f);
+			camera.setPitch(-30.0f);
+
+			camaraJuegoActiva = true;
+		}
+		else if (glm::distance(camPos, glm::vec3(50.0f, alturaMoneda, 180.0f)) < 100.0 && mainWindow.getJuego() == 0 && camaraJuegoActiva) {
+			camera.setCameraPosition(camPositionBackup);
+			camera.setYaw(yawBackup);
+			camera.setPitch(pitchBackup);
+			camaraJuegoActiva = false;
+		}
+
+
+
 
 
 
