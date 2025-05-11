@@ -129,8 +129,6 @@ GLfloat Window::getYChange()
 
 void Window::actualizarAnimacionJake(float yawCamara)
 {
-
-
 	// Si Jake está en movimiento, actualizar la animación de las extremidades
 	if (enMovimiento)
 	{
@@ -193,10 +191,6 @@ void Window::actualizarAnimacionJake(float yawCamara)
 	// Procesar las teclas de movimiento WASD
 	GLfloat velocidad = 0.8f;
 	enMovimiento = false;
-
-
-
-
 
 	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_A] || keys[GLFW_KEY_S] || keys[GLFW_KEY_D])
 	{
