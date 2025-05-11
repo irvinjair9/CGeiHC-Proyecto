@@ -2201,7 +2201,7 @@ int main()
 			Coin.RenderModel();
 
 
-<<<<<<< HEAD
+
 			//AQUÕ COLOCAR TODO LO DE LA ANIMACI”N DEL DARDO, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
 
 			model = glm::mat4(1.0);
@@ -2267,9 +2267,8 @@ int main()
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 			JakePiernaIzq.RenderModel();
 
-=======
-			//AQU√ç COLOCAR TODO LO DE LA ANIMACI√ìN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
->>>>>>> 3bcb4c84a5c7acf12b13be2cf0513c954948a439
+			//AQU√ç COLOCAR TODO LO DE LA ANIMACIoN DEL HACHA, PONER UN RETRASO DE 2 SEGUNDOA PARA QUE EL JUEGO SE ACTIVE
+
 
 		}
 		else {
