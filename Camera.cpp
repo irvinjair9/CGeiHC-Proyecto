@@ -49,8 +49,8 @@ void Camera::keyControl(bool* keys, GLfloat deltaTime)
 	float maxX = 600.0f;
 	float minZ = -600.0f;
 	float maxZ = 600.0f;
-	float minY = -0.5f;
-	float maxY = 200.0f;
+	float minY = 0.5f;
+	float maxY = 600.0f;
 
 	position.x = glm::clamp(position.x, minX, maxX);
 	position.z = glm::clamp(position.z, minZ, maxZ);
@@ -104,6 +104,19 @@ void Camera::update()
 	right = glm::normalize(glm::cross(front, worldUp));
 	up = glm::normalize(glm::cross(right, front));
 }
+
+
+GLfloat Camera::getYaw() {
+	return yaw;
+}
+
+
+//Para direccionar la camara
+void Camera::setFront(glm::vec3 newFront) {
+	front = glm::normalize(newFront);
+	update();
+}
+
 
 
 Camera::~Camera()

@@ -1,5 +1,12 @@
 #include "Window.h"
 
+#include "Camera.h"
+
+
+
+
+
+
 Window::Window()
 {
 	width = 800;
@@ -17,6 +24,8 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	Lantern = 0.0f;
 	Juego = 0.0f;
 
+	Deseo = 0.0f;
+
 	muevex = 2.0f;
 
 	// Inicialización de variables para Jake
@@ -31,6 +40,9 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	velocidadAnim = 3.0f;
 	rangoAnim = 30.0f;  // 30 grados de oscilación para extremidades
 	direccionAnim = true;  // true = hacia adelante, false = hacia atrás
+
+	CamaraAerea = 0.0f; // Inicialmente no está activa
+	
 
 	mouseFirstMoved = true;
 
@@ -115,8 +127,10 @@ GLfloat Window::getYChange()
 }
 
 
-void Window::actualizarAnimacionJake()
+void Window::actualizarAnimacionJake(float yawCamara)
 {
+
+
 	// Si Jake está en movimiento, actualizar la animación de las extremidades
 	if (enMovimiento)
 	{
@@ -177,46 +191,51 @@ void Window::actualizarAnimacionJake()
 	}
 
 	// Procesar las teclas de movimiento WASD
-	GLfloat velocidad = 0.1f;
+	GLfloat velocidad = 0.8f;
 	enMovimiento = false;
 
-	if (keys[GLFW_KEY_Z])
-	{
-		posZ -= velocidad;
-		enMovimiento = true;
-		direccion = 180.0f;
-	}
 
-	if (keys[GLFW_KEY_X])
-	{
-		posZ += velocidad;
-		enMovimiento = true;
-		direccion = 0.0f;
-	}
 
-	if (keys[GLFW_KEY_C])
-	{
-		posX -= velocidad;
-		enMovimiento = true;
-		direccion = 270.0f;
-	}
 
-	if (keys[GLFW_KEY_V])
-	{
-		posX += velocidad;
-		enMovimiento = true;
-		direccion = 90.0f;
-	}
 
-	// Combinaciones de teclas para movimiento diagonal
-	if (keys[GLFW_KEY_Z] && keys[GLFW_KEY_C])
-		direccion = 135.0f;
-	if (keys[GLFW_KEY_Z] && keys[GLFW_KEY_V])
-		direccion = 225.0f;
-	if (keys[GLFW_KEY_X] && keys[GLFW_KEY_C])
-		direccion = 45.0f;
-	if (keys[GLFW_KEY_X] && keys[GLFW_KEY_V])
-		direccion = 315.0f;
+	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_A] || keys[GLFW_KEY_S] || keys[GLFW_KEY_D])
+	{
+		enMovimiento = true;
+
+		// Usamos el yaw de la cámara como dirección de Jake
+		direccion = -yawCamara + 90.0f; // Ajuste para que Jake mire igual que la cámara
+
+
+		// Movimiento con respecto a la dirección de la cámara
+		float radians = glm::radians(yawCamara);
+		float dx = sin(radians);
+		float dz = cos(radians);
+
+		if (keys[GLFW_KEY_A])
+		{
+			posX += dx * velocidad;
+			posZ -= dz * velocidad;
+		}
+		if (keys[GLFW_KEY_D])
+		{
+			posX -= dx * velocidad;
+			posZ += dz * velocidad;
+		}
+		if (keys[GLFW_KEY_W])
+		{
+			posX += dz * velocidad;
+			posZ += dx * velocidad;
+		}
+		if (keys[GLFW_KEY_S])
+		{
+			posX -= dz * velocidad;
+			posZ -= dx * velocidad;
+		}
+
+		
+
+
+	}
 }
 
 void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode)
@@ -247,14 +266,46 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 		theWindow->Lantern = 1;
 	}
 
-	//Para activar el juego
+	//Para activar el juego como a su vez su camara
 	if (key == GLFW_KEY_O && action == GLFW_PRESS)
 	{
 		theWindow->Juego = 0;
 	}
+	
 	if (key == GLFW_KEY_L && action == GLFW_PRESS)
 	{
 		theWindow->Juego = 1;
+	}
+
+	//Para activar la camara aerea
+	if (key == GLFW_KEY_I && action == GLFW_PRESS)
+	{
+		theWindow->CamaraAerea = 0;
+	}
+	if (key == GLFW_KEY_K && action == GLFW_PRESS)
+	{
+		theWindow->CamaraAerea = 1;
+	}
+
+	//Para activar la camara en tercera persona
+	if (key == GLFW_KEY_U && action == GLFW_PRESS)
+	{
+		theWindow->CamaraPersona = 0;
+	}
+	if (key == GLFW_KEY_J && action == GLFW_PRESS)
+	{
+		theWindow->CamaraPersona = 1;
+	}
+
+
+	//Para activar el deseo
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+	{
+		theWindow->Deseo = 0;
+	}
+	if (key == GLFW_KEY_X && action == GLFW_PRESS)
+	{
+		theWindow->Deseo = 1;
 	}
 
 

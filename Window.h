@@ -32,8 +32,14 @@ public:
 	GLfloat getLantern() { return Lantern; }
 	GLfloat getJuego() { return Juego; }
 
+	GLfloat getDeseo() { return Deseo; }
+
+	GLfloat getCamaraAerea() { return CamaraAerea; }//Camara aerea
+
+	GLfloat getCamaraPersona() { return CamaraPersona; }//Camara en tercera persona
+
 	// Función para actualizar la animación de Jake
-	void actualizarAnimacionJake();
+	void actualizarAnimacionJake(float yawCamara);
 
 	~Window();
 private:
@@ -52,6 +58,11 @@ private:
 	GLfloat muevex;
 	GLfloat Lantern;//para linterna
 	GLfloat Juego;//para los juego
+
+	GLfloat CamaraAerea;
+	GLfloat CamaraPersona;
+
+	GLfloat Deseo;//para luces al pedir deseo
 
 	
 
