@@ -5,24 +5,26 @@ C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación gr
 C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\Window.h(13,37): warning C4244: 'return': conversión de 'GLint' a 'GLfloat'; posible pérdida de datos
   (compilando archivo de origen "ProyectoFeriaCG.cpp")
   
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1200,15): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1202,33): warning C4244: '+=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1261,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1277,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1435,23): warning C4018: '<': no coinciden signed/unsigned
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1467,22): warning C4018: '<': no coinciden signed/unsigned
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1648,16): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2012,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2133,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2177,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2275,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2415,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2443,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2516,22): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2631,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1240,15): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1242,33): warning C4244: '+=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1301,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1317,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1475,23): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1507,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(1688,16): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2053,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2174,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2218,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2316,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2456,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2484,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2557,22): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2672,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(2895,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\PROYECTO\ProyectoFeriaCG.cpp(3022,34): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
   Generando código
-  1 of 1128 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    16 functions had inline decision re-evaluated but remain unchanged
+  228 of 1134 functions (20.1%) were compiled, the rest were copied from previous compilation.
+    92 functions were new in current compilation
+    30 functions had inline decision re-evaluated but remain unchanged
   Generación de código finalizada
   PROYECTO.vcxproj -> C:\Users\migue\OneDrive\Escritorio\Cuadernos Uni\OCTAVO SEMESTRE\Computación grafica\Lab. Computación Grafica\PROYECTO\Release\PROYECTO.exe
