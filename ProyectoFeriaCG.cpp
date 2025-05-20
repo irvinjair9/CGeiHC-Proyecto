@@ -2729,7 +2729,7 @@ int main()
 		//animacion hadas
 		
 		if (arrb) {
-			if (movCos < 3.0f)
+			if (movCos < 10.0f)
 			{
 				movCos += movhdOffset * deltaTime;
 				//printf("avanza%f \n ",movCoche);
@@ -2740,7 +2740,7 @@ int main()
 			}
 		}
 		else {
-			if (movCos > 1.0f)
+			if (movCos > 5.0f)
 			{
 				movCos -= movhdOffset * deltaTime;
 				//printf("avanza%f \n ",movCoche);
@@ -2759,7 +2759,7 @@ int main()
 
 		//Cosmo
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(300.0f, movCos+6.0f, 240.0f));
+		model = glm::translate(model, glm::vec3(300.0f, movCos, 240.0f));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Cosmo.RenderModel();
